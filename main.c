@@ -7,6 +7,7 @@
 //gcc -o main main.c -lpcap
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <pcap.h>
 #include <getopt.h>
 #include "ethernet.h"
@@ -15,17 +16,30 @@
 int verbosity = 1;
 
 /**
+callback function
 */
 void got_packet(u_char* args, const struct pcap_pkthdr* header, const u_char* packet){
     handle_ethernet(packet);
 }
 
 /**
+print help for usage
 */
 void print_help(){
     fprintf(stdout, "How to use :\n");
     fprintf(stdout, "[-i interface]|[-o capture_file] [-f filter] [-v verbosity]");
     fprintf(stdout, "verbosity between 1 (low) and 3 (high)\n");
+}
+
+
+/**
+set verbosity level
+*/
+void set_verbosity(int verbosity_level){
+    verbosity = verbosity_level;
+    if (verbosity < 1 || verbosity > 3) {
+        fprintf(stderr, "verbosity must be between 1 (low) and 3 (high)\n");
+    }
 }
 
 
@@ -58,35 +72,34 @@ int main(int argc, char **argv) {
             //live interface
             case 'i':
                 if (interface != 0) {
-                    fprintf(stdout, "You must choose between live and offline capture  !\n");
+                    fprintf(stderr, "You must choose between live and offline capture  !\n");
                     return 0;
                 }
                 interface = 1;
                 //TODO gérer interface
-                printf("live\n");
             break;
 
             //offline interface
             case 'o':
                 if (interface != 0) {
-                    fprintf(stdout, "You must choose between live and offline capture  !\n");
+                    fprintf(stderr, "You must choose between live and offline capture  !\n");
                     return 0;
                 }
                 interface = 1;
                 //TODO gérer offline capture
-                printf("offline\n");
+
             break;
 
             //filter
             case 'f':
                 //TODO gérer filtre
-                printf("filtre\n");
+
             break;
 
             //verbosity
             case 'v':
                 //TODO gérer verbosity
-                printf("verbosity\n" );
+                set_verbosity(atoi(optarg));
             break;
 
             default:
