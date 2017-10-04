@@ -12,9 +12,8 @@
 #include <getopt.h>
 #include "ethernet.h"
 
-//verbosity set to 1 by default
-int verbosity = 1;
 
+char errbuf[PCAP_ERRBUF_SIZE];
 /**
 callback function
 */
@@ -33,15 +32,20 @@ void print_help(){
 
 
 /**
-set verbosity level
+open file for offline capture
 */
-void set_verbosity(int verbosity_level){
-    verbosity = verbosity_level;
-    if (verbosity < 1 || verbosity > 3) {
-        fprintf(stderr, "verbosity must be between 1 (low) and 3 (high)\n");
+pcap_t* capture_offine(char* file) {
+    pcap_t* interface;
+    if((interface = pcap_open_offline(file, errbuf)) == NULL) {
+        fprintf(stderr, "Unable to open %s\n", file);
+        exit(EXIT_FAILURE);
     }
+    return interface;
 }
 
+/**
+open file for
+*/
 
 int main(int argc, char **argv) {
 
@@ -54,12 +58,10 @@ int main(int argc, char **argv) {
      - Gérer les filtres (compile + set)
      */
 
-
-    char* errbuf;
-    char* fileName = "traffic";
-
+    pcap_t* interface;
+    int verbosity = 1;
     int option;
-    int interface = 0;
+    int interface_selected = 0;
 
     while((option = getopt(argc, argv, "hi:o:f:v:")) != -1) {
         switch (option) {
@@ -71,23 +73,23 @@ int main(int argc, char **argv) {
 
             //live interface
             case 'i':
-                if (interface != 0) {
+                if (interface_selected != 0) {
                     fprintf(stderr, "You must choose between live and offline capture  !\n");
                     return 0;
                 }
-                interface = 1;
+                interface_selected = 1;
                 //TODO gérer interface
             break;
 
             //offline interface
             case 'o':
-                if (interface != 0) {
+                if (interface_selected != 0) {
                     fprintf(stderr, "You must choose between live and offline capture  !\n");
                     return 0;
                 }
-                interface = 1;
+                interface_selected = 1;
                 //TODO gérer offline capture
-
+                interface = capture_offine(optarg);
             break;
 
             //filter
@@ -99,7 +101,11 @@ int main(int argc, char **argv) {
             //verbosity
             case 'v':
                 //TODO gérer verbosity
-                set_verbosity(atoi(optarg));
+                verbosity = atoi(optarg);
+                if (verbosity < 1 || verbosity > 3) {
+                    fprintf(stderr, "verbosity must be between 1 (low) and 3 (high)\n");
+                    return 0;
+                }
             break;
 
             default:
@@ -109,25 +115,18 @@ int main(int argc, char **argv) {
         }
     }
 
-    if (interface == 0){
+    if (interface_selected == 0){
         print_help();
     }
 
-    /*pcap_t* capture;
-    capture = pcap_open_offline(fileName, errbuf);
-
-    if (capture != 0) {
-        //ERREUR
-        printf("%s\n",  errbuf);
-    }
 
     int ret;
-    ret = pcap_loop(capture, -1, got_packet, NULL);
+    ret = pcap_loop(interface, -1, got_packet, NULL);
 
     if (ret != 0) {
         //ERREUR
         printf("Erreur pcap_loop\n");
-    }*/
+    }
 
 
   return 0;
