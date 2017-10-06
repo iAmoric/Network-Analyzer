@@ -16,13 +16,13 @@ void handle_ethernet(const u_char* packet){
     fprintf(stdout, "\t@Dest: %s\n", ether_ntoa((const struct ether_addr *) &ethernet_hdr->ether_dhost));
     fprintf(stdout, "\t@Src: %s\n", ether_ntoa((const struct ether_addr *) &ethernet_hdr->ether_shost));
 
+    packet += ethernet_size;
     if (ntohs (ethernet_hdr->ether_type) == ETHERTYPE_IP) {
-        fprintf(stdout,"\tIP\n");
-        handle_ip(packet, ethernet_size);
+        handle_ip(packet);
     }
     else  if (ntohs (ethernet_hdr->ether_type) == ETHERTYPE_ARP) {
         fprintf(stdout,"\tARP\n");
-        handle_arp(packet, ethernet_size);
+        handle_arp(packet);
     }
 
 }

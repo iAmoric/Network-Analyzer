@@ -20,7 +20,10 @@ char errbuf[PCAP_ERRBUF_SIZE];
 callback function
 */
 void handle_packet(u_char* args, const struct pcap_pkthdr* header, const u_char* packet){
+    static int nbPacket = 0;
+    fprintf(stdout, "\n--- [PACKET #%d] ------------------------------ \n", nbPacket);
     handle_ethernet(packet);
+    nbPacket++;
 }
 
 /**

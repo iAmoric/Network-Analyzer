@@ -1,20 +1,28 @@
 #include "ip.h"
 
-void handle_ip(const u_char* packet, int start) {
+void handle_ip(const u_char* packet) {
     struct ip* ip_hdr;
-    int version;
+    ip_hdr = (struct ip*) (packet);
 
-    ip_hdr = (struct ip*) (packet + start);
+    int version;    //ip version
+    int hl;         //header length
 
-    //Extract ip version from the first byte;
-    version = packet[start];
-    version = version >> 4;
-
-    printf("\t\tVersion: %d\n", version);
+    version = ip_hdr->ip_v;
 
     //Continue only if IPv4
-    if (version != 4) {
+    if (version == 6) {
+        fprintf(stdout,"\tIPv6\n");
         return;
     }
-    
+
+    fprintf(stdout,"\tIPv4\n");
+
+    hl = ip_hdr->ip_hl;
+
+    printf("\t\thl: %d\n", hl);
+
+    /*
+    printf("\t\t@Src: %d\n", ip_hdr->saddr);
+    printf("\t\t@Dest: %d\n", ip_hdr->daddr);
+    */
 }
