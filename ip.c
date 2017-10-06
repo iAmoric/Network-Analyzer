@@ -6,14 +6,15 @@ void handle_ip(const u_char* packet, int start) {
 
     ip_hdr = (struct ip*) (packet + start);
 
+    //Extract ip version from the first byte;
     version = packet[start];
     version = version >> 4;
 
+    printf("\t\tVersion: %d\n", version);
+
+    //Continue only if IPv4
     if (version != 4) {
-        //Version IP non supporté
         return;
     }
-    else {
-        printf("\t\tVersion: %d\n", version);
-    }
+    
 }
