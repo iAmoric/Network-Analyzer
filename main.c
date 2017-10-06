@@ -12,12 +12,14 @@
 #include <getopt.h>
 #include "ethernet.h"
 
-
+//buffer for error
 char errbuf[PCAP_ERRBUF_SIZE];
+
+
 /**
 callback function
 */
-void got_packet(u_char* args, const struct pcap_pkthdr* header, const u_char* packet){
+void handle_packet(u_char* args, const struct pcap_pkthdr* header, const u_char* packet){
     handle_ethernet(packet);
 }
 
@@ -45,7 +47,7 @@ pcap_t* capture_offine(char* file) {
 
 /**
 open interface for live capture
-if interface is is not specified -> auto select
+if specified interface failed to be opened, try with auto select another interface
 */
 pcap_t* capture_live(char* dev) {
     pcap_t* interface;
@@ -83,9 +85,9 @@ int main(int argc, char **argv) {
     /**
     TODO :
      - traiter les options
-        - pouvoir choisir entre capture live / offline
-        - si live -> ouvrir le descripteur de capture live
-        - si offline -> ouvrir le fichier de capture
+        - pouvoir choisir entre capture live / offline --> OK
+        - si live -> ouvrir le descripteur de capture live --> OK
+        - si offline -> ouvrir le fichier de capture --> OK
      - Gérer les filtres (compile + set)
      */
 
@@ -112,7 +114,6 @@ int main(int argc, char **argv) {
                 }
                 interface_selected = 1;
                 interface = capture_live(optarg);
-                //TODO gérer interface
             break;
 
             //offline interface
@@ -122,7 +123,6 @@ int main(int argc, char **argv) {
                     return 0;
                 }
                 interface_selected = 1;
-                //TODO gérer offline capture
                 interface = capture_offine(optarg);
             break;
 
@@ -154,14 +154,13 @@ int main(int argc, char **argv) {
     }
 
 
+    //run treatment loop
     int ret;
-    ret = pcap_loop(interface, -1, got_packet, NULL);
+    ret = pcap_loop(interface, -1, handle_packet, NULL);
 
     if (ret != 0) {
-        //ERREUR
-        printf("Erreur pcap_loop\n");
+        printf("Error pcap_loop\n");
     }
 
-
-  return 0;
+    return 0;
 }
