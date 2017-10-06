@@ -44,8 +44,39 @@ pcap_t* capture_offine(char* file) {
 }
 
 /**
-open file for
+open interface for live capture
+if interface is is not specified -> auto select
 */
+pcap_t* capture_live(char* dev) {
+    pcap_t* interface;
+
+    interface = pcap_open_live(dev, 1500, 1, 100, errbuf);
+
+    if (interface == NULL) {
+        //interface specified is maybe wrong. Retry with auto select
+        fprintf(stderr, "Unable to select interface %s for live capture : %s\n", dev,errbuf);
+        fprintf(stderr, "Retrying with auto select...\n");
+
+        dev = pcap_lookupdev(errbuf);
+
+        if (dev == NULL) {
+            fprintf(stderr, "Couldn't find default device: %s\n", errbuf);
+            exit(EXIT_FAILURE);
+        }
+
+        interface = pcap_open_live(dev, 1500, 1, 100, errbuf);
+
+        if (interface == NULL) {
+            fprintf(stderr, "Unable to auto select an interface for live capture : %s\n", errbuf);
+            exit(EXIT_FAILURE);
+        }
+    }
+
+    fprintf(stdout, "Interface %s selected for live capture...\n", dev);
+    return interface;
+}
+
+
 
 int main(int argc, char **argv) {
 
@@ -62,6 +93,8 @@ int main(int argc, char **argv) {
     int verbosity = 1;
     int option;
     int interface_selected = 0;
+    bpf_u_int32 ip;
+    bpf_u_int32 mask;
 
     while((option = getopt(argc, argv, "hi:o:f:v:")) != -1) {
         switch (option) {
@@ -78,6 +111,7 @@ int main(int argc, char **argv) {
                     return 0;
                 }
                 interface_selected = 1;
+                interface = capture_live(optarg);
                 //TODO gérer interface
             break;
 
