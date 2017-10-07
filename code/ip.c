@@ -54,14 +54,21 @@ void handle_ip(const u_char* packet) {
 
     protocol = ip_hdr->ip_p;
 
+    packet += header_length*4;
     switch (protocol) {
-        case 6:
-            printf("\t\tTCP\n");
+        case 0x06:
+            handle_tcp(packet);
         break;
-        case 11:
-            printf("\t\tUDP\n");
+        case 0x11:
+            handle_udp(packet);
         break;
-        default:break;
+        default:
+            printf("\t\tUnsupported protocol\n");
+        break;
     }
+
+
+    
+
 
 }

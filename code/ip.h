@@ -5,4 +5,7 @@
 #include <arpa/inet.h>
 #include <sys/socket.h>
 
+#include "tcp.h"
+#include "udp.h"
+
 void handle_ip(const u_char* packet);

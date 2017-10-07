@@ -1,5 +1,5 @@
-analyzer : main.o ethernet.o ip.o arp.o
-	gcc main.o ethernet.o ip.o arp.o -o analyzer -Wall -Wextra -Werror -lpcap -g
+analyzer : main.o ethernet.o ip.o arp.o tcp.o udp.o
+	gcc main.o ethernet.o ip.o arp.o tcp.o udp.o -o analyzer -Wall -Wextra -Werror -lpcap -g
 
 main.o : main.c ethernet.h
 	gcc -c main.c -o main.o
@@ -12,6 +12,12 @@ ip.o : ip.c ip.h
 
 arp.o : arp.c arp.h
 	gcc -c arp.c -o arp.o
+
+tcp.o : tcp.c tcp.h
+	gcc -c tcp.c -o tcp.o
+
+udp.o : udp.c udp.h
+	gcc -c udp.c -o udp.o
 
 clean:
 	rm -rf *.o
