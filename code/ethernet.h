@@ -2,7 +2,7 @@
 #include <netinet/ether.h>
 #include <netinet/in.h>
 #include <stdio.h>
-#include <pcap.h>
+#include <stdlib.h>
 
 #include "ip.h"
 #include "arp.h"

@@ -1,6 +1,5 @@
 #include "ethernet.h"
 
-
 void handle_ethernet(const u_char* packet){
     struct ether_header* ethernet_hdr;
     int ethernet_size = sizeof(struct ether_header);
@@ -18,8 +17,11 @@ void handle_ethernet(const u_char* packet){
             handle_ip(packet);
         break;
         case ETHERTYPE_ARP:
-            fprintf(stdout,"\tARP\n");
             handle_arp(packet);
+            exit(1);
+        break;
+        case ETHERTYPE_IPV6:
+            fprintf(stdout, "\tIPv6 (Unsuppported)\n");
         break;
     }
 

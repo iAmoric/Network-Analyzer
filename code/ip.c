@@ -63,7 +63,7 @@ void handle_ip(const u_char* packet) {
             handle_udp(packet);
         break;
         default:
-            printf("\t\tUnsupported protocol\n");
+            printf("\t\tUnsupported protocol : 0x%x\n", protocol);
         break;
     }
 
