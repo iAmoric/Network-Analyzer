@@ -6,3 +6,4 @@
 #include <netinet/ether.h>
 
 void handle_arp(const u_char* packet);
+//void get_ip(int packet);

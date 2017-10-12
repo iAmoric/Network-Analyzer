@@ -13,7 +13,7 @@ void handle_ip(const u_char* packet) {
     int time_to_live;           //time to live
     int checksum;               //checksum
     char* ip_addr;              //ip addresses, for dest and src
-    int protocol;                //protocol
+    int protocol;               //protocol
 
 
 

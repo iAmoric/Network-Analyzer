@@ -18,7 +18,6 @@ void handle_ethernet(const u_char* packet){
         break;
         case ETHERTYPE_ARP:
             handle_arp(packet);
-            exit(1);
         break;
         case ETHERTYPE_IPV6:
             fprintf(stdout, "\tIPv6 (Unsuppported)\n");

@@ -53,7 +53,8 @@ void handle_arp(const u_char* packet) {
 	packet += arp_hdr->ar_hln;
 
 	//TODO
-	strncpy(ip_addr, (char*) packet, arp_hdr->ar_pln);
+	//ip_addr = get_ip(packet);
+	//strncpy(ip_addr, (char*) packet, arp_hdr->ar_pln);
 	fprintf(stdout, "Sender IP : \n");
 	packet += arp_hdr->ar_pln;
 
@@ -63,8 +64,18 @@ void handle_arp(const u_char* packet) {
 	fprintf(stdout, "\t\tTarget Mac : %s | ", ether_ntoa((const struct ether_addr *) &mac_addr));
 	packet += arp_hdr->ar_hln;
 
-	strncpy(ip_addr, (char*) packet, arp_hdr->ar_pln);
+	//strncpy(ip_addr, (char*) packet, arp_hdr->ar_pln);
 	fprintf(stdout, "Target Ip : \n");
 	packet += arp_hdr->ar_pln;
-
 }
+
+
+/*char* get_ip(int32_t packet){
+	int32_t addr[4];
+    addr[0] = packet & 0xFF;
+    addr[1] = (packet >> 8) & 0xFF;
+    addr[2] = (packet >> 16) & 0xFF;
+    addr[3] = (packet >> 24) & 0xFF;
+    char* ad
+    printf("%d.%d.%d.%d", packet[0], packet[1], packet[2], packet[3]);
+}*/
