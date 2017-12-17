@@ -7,7 +7,7 @@ void handle_arp(const u_char* packet) {
 	int hard_addr = ntohs(arp_hdr->ar_hrd);
 	int hard_pro = ntohs(arp_hdr->ar_pro);
 
-	fprintf(stdout, "\tAPR\n");
+	fprintf(stdout, "\tARP\n");
 
 	//hardware type
 	fprintf(stdout, "\t\tHardware type : ");
@@ -59,8 +59,8 @@ void handle_arp(const u_char* packet) {
 	packet += arp_hdr->ar_pln;
 
 
-	//target	
-	strncpy(mac_addr, (char*) packet, arp_hdr->ar_hln);	
+	//target
+	strncpy(mac_addr, (char*) packet, arp_hdr->ar_hln);
 	fprintf(stdout, "\t\tTarget Mac : %s | ", ether_ntoa((const struct ether_addr *) &mac_addr));
 	packet += arp_hdr->ar_hln;
 

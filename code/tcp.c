@@ -15,10 +15,12 @@ void handle_tcp(const u_char* packet) {
 	fprintf(stdout, "\t\tTCP\n");
 
 	//src port
-	fprintf(stdout, "\t\t\tSrc port: %d\n", tcp_hdr->th_sport);
+	sport = ntohs(tcp_hdr->th_sport);
+	fprintf(stdout, "\t\t\tSrc port: %d\n", sport);
 
 	//dest port
-	fprintf(stdout, "\t\t\tDest port: %d\n", tcp_hdr->th_dport);
+	dport = ntohs(tcp_hdr->th_dport);
+	fprintf(stdout, "\t\t\tDest port: %d\n", ntohs(tcp_hdr->th_dport));
 
 	//seq number
 	printf("\t\t\tSeq: %d | ", ntohs(tcp_hdr->th_seq));
@@ -35,25 +37,26 @@ void handle_tcp(const u_char* packet) {
 	printf("Flags: ");
 
 	if (flag & TH_FIN)
-	printf("FIN ");
+		printf("FIN ");
 	if (flag & TH_SYN)
-	printf("SYN ");
+		printf("SYN ");
 	if (flag & TH_RST)
-	printf("RST ");
+		printf("RST ");
 	if (flag & TH_PUSH)
-	printf("PUSH ");
+		printf("PUSH ");
 	if (flag & TH_ACK)
-	printf("ACK ");
+		printf("ACK ");
 	if (flag & TH_URG)
-	printf("URG");
+		printf("URG");
 	printf("| ");
 
+	// window size
 	wsize = tcp_hdr->th_win;
 	printf("Window size: %u | \n", ntohs(wsize));
 
 	// options;
 	if (hlen > 5) {
-		printf("\t\t\tOptions : ");
+		printf("\t\t\tOptions: ");
 		int data_offset = 4 * hlen; 				// number of bytes (32 bits = 4 bytes)
 		const u_char* end = packet + data_offset; 	// end of the options
 		packet += sizeof(struct tcphdr);			// shift the start (20 bytes)
@@ -102,5 +105,35 @@ void handle_tcp(const u_char* packet) {
 		printf("\n");
 	}
 
+	// 80 : HTTP
+	// 443 : HTTPS
+	// 23 : Telnet
+	// 587 : SMTPS
+	// 25 : SMTPS
+	// 22 : FTP data
+	// 21 : FTP requetes
+	// 110 : POP3
+	// 143 : IMAP
+	printf("\t\t\t");
+	if (sport == 80 || dport == 80)
+		printf("HTTP\n");
+	else if (sport == 443 || dport == 443)
+		printf("HTTPS\n");
+	else if (sport == 23 || dport == 23)
+		printf("TELNET\n");
+	else if (sport == 587 || dport == 587)
+		printf("SMTPS\n");
+	else if (sport == 25 || dport == 25)
+		printf("SMTP\n");
+	else if (sport == 22 || dport == 22)
+		printf("FTP data\n");
+	else if (sport == 21 || dport == 21)
+		printf("FTP requetes\n");
+	else if (sport == 110 || dport == 110)
+		printf("POP3\n");
+	else if (sport == 143 || dport == 143)
+		printf("IMAP\n");
+	else
+		printf("Unknown protocol\n");
 
 }
