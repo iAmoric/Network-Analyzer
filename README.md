@@ -14,11 +14,11 @@
 * [x] ARP           
 * [x] IP v4         
 * [x] TCP          
-* [ ] UDP
+* [X] UDP
 * [ ] BOOTP
 * [ ] DHCP
 * [ ] DNS
-* [ ] HTTPS
+* [X] HTTPS
 * [ ] FTP
 * [ ] SMTP
 * [ ] POP3
