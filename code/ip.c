@@ -56,12 +56,13 @@ void handle_ip(const u_char* packet) {
     protocol = ip_hdr->ip_p;
 
     packet += header_length*4;
+    int payload_size = ntohs(total_length) - sizeof(struct ip);
     switch (protocol) {
         case 0x06:
-            handle_tcp(packet);
+            handle_tcp(packet, payload_size);
         break;
         case 0x11:
-            handle_udp(packet);
+            handle_udp(packet, payload_size);
         break;
         default:
             printf("\t\tUnsupported protocol : 0x%x\n", protocol);

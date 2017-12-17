@@ -1,4 +1,4 @@
 #include <stdio.h>
 #include <pcap.h>
 
-void handle_udp(const u_char* packet);
+void handle_udp(const u_char* packet, int payload_size);

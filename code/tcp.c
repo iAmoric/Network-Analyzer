@@ -1,6 +1,6 @@
 #include "tcp.h"
 
-void handle_tcp(const u_char* packet) {
+void handle_tcp(const u_char* packet, int payload_size) {
 	struct tcphdr* tcp_hdr;
 	tcp_hdr = (struct tcphdr*) (packet);
 
@@ -54,10 +54,11 @@ void handle_tcp(const u_char* packet) {
 	wsize = tcp_hdr->th_win;
 	printf("Window size: %u | \n", ntohs(wsize));
 
+	int data_offset = 4 * hlen; 	// number of bytes (32 bits = 4 bytes)
+
 	// options;
 	if (hlen > 5) {
 		printf("\t\t\tOptions: ");
-		int data_offset = 4 * hlen; 				// number of bytes (32 bits = 4 bytes)
 		const u_char* end = packet + data_offset; 	// end of the options
 		packet += sizeof(struct tcphdr);			// shift the start (20 bytes)
 
@@ -114,11 +115,11 @@ void handle_tcp(const u_char* packet) {
 	// 21 : FTP requetes
 	// 110 : POP3
 	// 143 : IMAP
-	printf("\t\t\t");
+	payload_size = payload_size - data_offset;
 	if (sport == 80 || dport == 80)
-		printf("HTTP\n");
+		handle_http(packet, payload_size, 0);
 	else if (sport == 443 || dport == 443)
-		printf("HTTPS\n");
+		handle_http(packet, payload_size, 1);
 	else if (sport == 23 || dport == 23)
 		printf("TELNET\n");
 	else if (sport == 587 || dport == 587)
