@@ -4,8 +4,8 @@ void handle_tcp(const u_char* packet, int payload_size) {
 	struct tcphdr* tcp_hdr;
 	tcp_hdr = (struct tcphdr*) (packet);
 
-	int sport;
-	int dport;
+	u_short sport;
+	u_short dport;
 	u_char flag;
 	u_long seq;
 	u_long ack;
@@ -20,7 +20,7 @@ void handle_tcp(const u_char* packet, int payload_size) {
 
 	//dest port
 	dport = ntohs(tcp_hdr->th_dport);
-	fprintf(stdout, "\t\t\tDest port: %d\n", ntohs(tcp_hdr->th_dport));
+	fprintf(stdout, "\t\t\tDest port: %d\n", tcp_hdr->th_dport);
 
 	//seq number
 	printf("\t\t\tSeq: %d | ", ntohs(tcp_hdr->th_seq));

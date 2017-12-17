@@ -44,8 +44,8 @@ void handle_ip(const u_char* packet) {
     time_to_live = ip_hdr->ip_ttl;
     printf("ttl: %d | ", time_to_live);
 
-    checksum = ip_hdr->ip_sum;
-    printf("sum: 0x%x\n", ntohs(ip_hdr->ip_sum));
+    checksum = ntohs(ip_hdr->ip_sum);
+    printf("sum: 0x%x\n", checksum);
 
     ip_addr = inet_ntoa(ip_hdr->ip_src);
     printf("\t\t@Src: %s\n", ip_addr);
