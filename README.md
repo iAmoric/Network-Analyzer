@@ -8,12 +8,12 @@
 `-i` is for live capture, and `-o` is for offline capture. Do not use both at the same time
 `-v` is the verbosity. Verbosity is between 1 (low) and 3 (high)
 
-## Implented protocols
+## Implemented protocols
 
 * [x] ETHERNET
 * [x] ARP           
 * [x] IP v4         
-* [ ] TCP          
+* [x] TCP          
 * [ ] UDP
 * [ ] BOOTP
 * [ ] DHCP
