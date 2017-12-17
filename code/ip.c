@@ -37,6 +37,7 @@ void handle_ip(const u_char* packet) {
     identifier = ip_hdr->ip_id;
     printf("id: %d | ", ntohs(identifier));
 
+    //TODO check it
     fragment_offset = ip_hdr->ip_off;
     printf("off: %d | ", fragment_offset);
 
@@ -68,7 +69,7 @@ void handle_ip(const u_char* packet) {
     }
 
 
-    
+
 
 
 }

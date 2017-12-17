@@ -23,6 +23,7 @@ void handle_packet(u_char* args, const struct pcap_pkthdr* header, const u_char*
     static int nbPacket = 1;
     fprintf(stdout, "\n--- [PACKET #%d] ------------------------------------------------------------ \n", nbPacket);
     handle_ethernet(packet);
+    printf("\n");
     nbPacket++;
 }
 
@@ -31,7 +32,7 @@ print help for usage
 */
 void print_help(){
     fprintf(stdout, "How to use :\n");
-    fprintf(stdout, "[-i interface]|[-o capture_file] [-f filter] [-v verbosity]");
+    fprintf(stdout, "[-i interface]|[-o capture_file] [-f filter] [-v verbosity]\n");
     fprintf(stdout, "verbosity between 1 (low) and 3 (high)\n");
 }
 
