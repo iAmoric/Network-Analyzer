@@ -18,9 +18,9 @@
 * [ ] BOOTP
 * [ ] DHCP
 * [ ] DNS
-* [X] HTTPS
+* [X] HTTP(S)
 * [x] FTP
-* [x] SMTP
+* [x] SMTP(S)
 * [x] POP3
 * [x] IMAP
 * [ ] Telnet
