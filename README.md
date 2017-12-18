@@ -20,11 +20,10 @@
 * [ ] DNS
 * [X] HTTPS
 * [x] FTP
-* [ ] SMTP
-* [ ] POP3
-* [ ] IMAP
+* [x] SMTP
+* [x] POP3
+* [x] IMAP
 * [ ] Telnet
-* [ ] SCTP
 
 
 ## TODO
