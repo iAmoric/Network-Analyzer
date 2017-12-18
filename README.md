@@ -19,7 +19,7 @@
 * [ ] DHCP
 * [ ] DNS
 * [X] HTTPS
-* [ ] FTP
+* [x] FTP
 * [ ] SMTP
 * [ ] POP3
 * [ ] IMAP
