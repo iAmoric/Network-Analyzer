@@ -32,5 +32,5 @@
 * [ ] arp : Target ip
 * [ ] ip :  fragment offset
 * [x] tcp : options
-* [ ] main : filters
+* [x] main : filters
 * [ ] main : verbosity

@@ -11,6 +11,7 @@
 #include <stdlib.h>
 #include <pcap.h>
 #include <getopt.h>
+
 #include "datalinkLayer.h"
 
 //buffer for error
@@ -84,7 +85,6 @@ pcap_t* capture_live(char* dev) {
 }
 
 
-
 int main(int argc, char **argv) {
 
     /**
@@ -93,14 +93,17 @@ int main(int argc, char **argv) {
         - pouvoir choisir entre capture live / offline --> OK
         - si live -> ouvrir le descripteur de capture live --> OK
         - si offline -> ouvrir le fichier de capture --> OK
-     - Gérer les filtres (compile + set)
+     - Gérer les filtres (compile + set) -> OK
+     - Gérer verbosite
      */
 
     pcap_t* interface;
     int verbosity = 1;
     int option;
     int interface_selected = 0;
-    bpf_u_int32 ip;
+    int filter_selected = 0;
+    char* filter;
+    struct bpf_program fp;
     bpf_u_int32 mask;
 
     while((option = getopt(argc, argv, "hi:o:f:v:")) != -1) {
@@ -133,8 +136,8 @@ int main(int argc, char **argv) {
 
             //filter
             case 'f':
-                //TODO gérer filtre
-
+                filter_selected = 1;
+                filter = optarg;
             break;
 
             //verbosity
@@ -158,6 +161,18 @@ int main(int argc, char **argv) {
         print_help();
     }
 
+    //set filter
+    if (filter_selected != 0) {
+        if(pcap_compile(interface, &fp, filter, 0, mask) != 0) {
+            fprintf(stderr, "Error pcap_compile with filter %s\n", filter);
+            return 0;
+        }
+
+        if(pcap_setfilter(interface, &fp) != 0) {
+            fprintf(stderr, "Error pcap_setfilter with filter %s\n", filter);
+            return 0;
+        }
+    }
 
     //run treatment loop
     int ret;
@@ -168,5 +183,11 @@ int main(int argc, char **argv) {
     }
 
     printf("\n");
+
+    //exit proprely
+    if (filter_selected != 0)
+        pcap_freecode(&fp);
+    pcap_close(interface);
+
     return 0;
 }
