@@ -11,7 +11,7 @@
 #include <stdlib.h>
 #include <pcap.h>
 #include <getopt.h>
-#include "ethernet.h"
+#include "datalinkLayer.h"
 
 //buffer for error
 char errbuf[PCAP_ERRBUF_SIZE];

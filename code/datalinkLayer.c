@@ -1,4 +1,4 @@
-#include "ethernet.h"
+#include "datalinkLayer.h"
 
 void handle_ethernet(const u_char* packet){
     struct ether_header* ethernet_hdr;

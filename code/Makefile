@@ -1,32 +1,20 @@
-analyzer : main.o ethernet.o ip.o arp.o tcp.o udp.o http.o telnet.o ftp.o
-	gcc main.o ethernet.o ip.o arp.o tcp.o udp.o http.o telnet.o ftp.o -o analyzer -Wall -Wextra -Werror -lpcap -g
+analyzer : main.o datalinkLayer.o networkLayer.o transportLayer.o applicationLayer.o
+	gcc main.o datalinkLayer.o networkLayer.o transportLayer.o applicationLayer.o -o analyzer -Wall -Wextra -Werror -lpcap -g
 
-main.o : main.c ethernet.h
+main.o : main.c
 	gcc -c main.c -o main.o
 
-ethernet.o : ethernet.c ethernet.h ip.h arp.h
-	gcc -c ethernet.c -o ethernet.o
+datalinkLayer.o : datalinkLayer.c datalinkLayer.h
+	gcc -c datalinkLayer.c -o datalinkLayer.o
 
-ip.o : ip.c ip.h
-	gcc -c ip.c -o ip.o
+networkLayer.o : networkLayer.c networkLayer.h
+	gcc -c networkLayer.c -o networkLayer.o
 
-arp.o : arp.c arp.h
-	gcc -c arp.c -o arp.o
+transportLayer.o : transportLayer.c transportLayer.h
+	gcc -c transportLayer.c -o transportLayer.o
 
-tcp.o : tcp.c tcp.h
-	gcc -c tcp.c -o tcp.o
-
-udp.o : udp.c udp.h
-	gcc -c udp.c -o udp.o
-
-http.o : http.c http.h
-	gcc -c http.c -o http.o
-
-telnet.o : telnet.c telnet.h
-	gcc -c telnet.c -o telnet.o
-
-ftp.o : ftp.c ftp.h
-	gcc -c ftp.c -o ftp.o
+applicationLayer.o : applicationLayer.c applicationLayer.h
+	gcc -c applicationLayer.c -o applicationLayer.o
 
 clean:
 	rm -rf *.o

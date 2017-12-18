@@ -1,4 +1,4 @@
-#include "tcp.h"
+#include "transportLayer.h"
 
 void handle_tcp(const u_char* packet, int payload_size) {
 	struct tcphdr* tcp_hdr;
@@ -7,8 +7,6 @@ void handle_tcp(const u_char* packet, int payload_size) {
 	u_short sport;
 	u_short dport;
 	u_char flag;
-	u_long seq;
-	u_long ack;
 	int hlen;
 	int wsize;
 
@@ -110,7 +108,7 @@ void handle_tcp(const u_char* packet, int payload_size) {
 	// 443 : HTTPS
 	// 23 : Telnet
 	// 587 : SMTPS
-	// 25 : SMTPS
+	// 25 : SMTP
 	// 22 : FTP data
 	// 21 : FTP requetes
 	// 110 : POP3
@@ -118,23 +116,69 @@ void handle_tcp(const u_char* packet, int payload_size) {
 	payload_size = payload_size - data_offset;
 	if (sport == 80 || dport == 80)
 		handle_http(packet, payload_size, 0);
+
 	else if (sport == 443 || dport == 443)
 		handle_http(packet, payload_size, 1);
+
 	else if (sport == 23 || dport == 23)
 		handle_telnet(packet);
+
 	else if (sport == 587 || dport == 587)
-		printf("SMTPS\n");
+		handle_smtp(packet, payload_size, 1);
+
 	else if (sport == 25 || dport == 25)
-		printf("SMTP\n");
+		handle_smtp(packet, payload_size, 0);
+
 	else if (sport == 20 || dport == 20)
 		handle_ftp(packet, payload_size, 0);
+
 	else if (sport == 21 || dport == 21)
 		handle_ftp(packet, payload_size, 1);
+
 	else if (sport == 110 || dport == 110)
-		printf("POP3\n");
+		handle_pop(packet, payload_size);
+
 	else if (sport == 143 || dport == 143)
-		printf("IMAP\n");
+		handle_imap(packet, payload_size);
+
 	else
 		printf("\t\t\tUnknown protocol\n");
+
+}
+
+
+void handle_udp(const u_char* packet, int payload_size) {
+	printf("\t\tUDP\n" );
+
+	struct udphdr *udp_hdr;
+	udp_hdr = (struct udphdr*) (packet);
+	u_short sport;
+	u_short dport;
+	short length;
+	u_short checksum;
+
+	//src port
+	sport = ntohs(udp_hdr->source);
+	fprintf(stdout, "\t\t\tSrc port: %d\n", sport);
+
+	//dest port
+	dport = ntohs(udp_hdr->dest);
+	fprintf(stdout, "\t\t\tDest port: %d\n", dport);
+
+	//length
+	length = ntohs(udp_hdr->len);
+	fprintf(stdout, "\t\t\tlen: %d | ", length);
+
+	//Checksum
+	checksum = ntohs(udp_hdr->check);
+	printf("sum: 0x%x\n", checksum);
+
+
+	packet += sizeof(struct udphdr);
+
+	//DNS
+	if(sport == 53 || sport == 53) {
+        handle_dns(packet);
+    }
 
 }
