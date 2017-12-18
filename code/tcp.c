@@ -121,20 +121,20 @@ void handle_tcp(const u_char* packet, int payload_size) {
 	else if (sport == 443 || dport == 443)
 		handle_http(packet, payload_size, 1);
 	else if (sport == 23 || dport == 23)
-		printf("TELNET\n");
+		handle_telnet(packet);
 	else if (sport == 587 || dport == 587)
 		printf("SMTPS\n");
 	else if (sport == 25 || dport == 25)
 		printf("SMTP\n");
-	else if (sport == 22 || dport == 22)
-		printf("FTP data\n");
+	else if (sport == 20 || dport == 20)
+		handle_ftp(packet, payload_size, 0);
 	else if (sport == 21 || dport == 21)
-		printf("FTP requetes\n");
+		handle_ftp(packet, payload_size, 1);
 	else if (sport == 110 || dport == 110)
 		printf("POP3\n");
 	else if (sport == 143 || dport == 143)
 		printf("IMAP\n");
 	else
-		printf("Unknown protocol\n");
+		printf("\t\t\tUnknown protocol\n");
 
 }

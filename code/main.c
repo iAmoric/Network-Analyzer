@@ -5,6 +5,7 @@
 **/
 
 //gcc -o main main.c -lpcap
+//tcpdump -i wlp4s0 -w file
 
 #include <stdio.h>
 #include <stdlib.h>
