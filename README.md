@@ -28,8 +28,8 @@
 
 ## TODO
 
-* [ ] arp : Sender ip
-* [ ] arp : Target ip
+* [x] arp : Sender ip
+* [x] arp : Target ip
 * [ ] ip :  fragment offset
 * [x] tcp : options
 * [x] main : filters
