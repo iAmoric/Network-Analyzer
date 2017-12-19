@@ -1,13 +1,20 @@
 #include "datalinkLayer.h"
 
-void handle_ethernet(const u_char* packet){
+void handle_ethernet(const u_char* packet, enum verbosity verbosity){
     struct ether_header* ethernet_hdr;
     int ethernet_size = sizeof(struct ether_header);
     ethernet_hdr = (struct ether_header*) packet;
 
-    fprintf(stdout, "ETHERNET\n");
-    fprintf(stdout, "\t@Dest: %s\n", ether_ntoa((const struct ether_addr *) &ethernet_hdr->ether_dhost));
-    fprintf(stdout, "\t@Src: %s\n", ether_ntoa((const struct ether_addr *) &ethernet_hdr->ether_shost));
+    if (verbosity == HIGH){
+        printf("ETHERNET\n");
+        printf("\t@Dest: %s\n", ether_ntoa((const struct ether_addr *) &ethernet_hdr->ether_dhost));
+        printf("\t@Src: %s\n", ether_ntoa((const struct ether_addr *) &ethernet_hdr->ether_shost));
+    }
+    else if (verbosity == MEDIUM) {
+        printf("ETHERNET, ");
+        printf("Src: %s, ", ether_ntoa((const struct ether_addr *) &ethernet_hdr->ether_dhost));
+        printf("Dst: %s\n", ether_ntoa((const struct ether_addr *) &ethernet_hdr->ether_shost));
+    }
 
     packet += ethernet_size;
     int type = ntohs (ethernet_hdr->ether_type);
@@ -20,7 +27,9 @@ void handle_ethernet(const u_char* packet){
             handle_arp(packet);
         break;
         case ETHERTYPE_IPV6:
-            fprintf(stdout, "\tIPv6 (Unsuppported)\n");
+            if (verbosity == HIGH)
+                printf("\t");
+            printf("IPv6 (Unsuppported)\n");
         break;
     }
 

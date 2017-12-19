@@ -12,19 +12,20 @@
 #include <pcap.h>
 #include <getopt.h>
 
+#include "verbosity.h"
 #include "datalinkLayer.h"
 
 //buffer for error
 char errbuf[PCAP_ERRBUF_SIZE];
 
-
+enum verbosity verbosity;
 /**
 callback function
 */
 void handle_packet(u_char* args, const struct pcap_pkthdr* header, const u_char* packet){
     static int nbPacket = 1;
     fprintf(stdout, "\n--- [PACKET #%d] ------------------------------------------------------------ \n", nbPacket);
-    handle_ethernet(packet);
+    handle_ethernet(packet, verbosity);
     printf("\n");
     nbPacket++;
 }
@@ -34,7 +35,7 @@ print help for usage
 */
 void print_help(){
     fprintf(stdout, "How to use :\n");
-    fprintf(stdout, "[-i interface]|[-o capture_file] [-f filter] [-v verbosity]\n");
+    fprintf(stdout, "-i <interface>|-o <capture_file> [-f filter] -v <verbosity>\n");
     fprintf(stdout, "verbosity between 1 (low) and 3 (high)\n");
 }
 
@@ -98,10 +99,11 @@ int main(int argc, char **argv) {
      */
 
     pcap_t* interface;
-    int verbosity = 1;
+    //int verbosity = 1;
     int option;
     int interface_selected = 0;
     int filter_selected = 0;
+    int v;
     char* filter;
     struct bpf_program fp;
     bpf_u_int32 mask;
@@ -143,11 +145,19 @@ int main(int argc, char **argv) {
             //verbosity
             case 'v':
                 //TODO gérer verbosity
-                verbosity = atoi(optarg);
-                if (verbosity < 1 || verbosity > 3) {
+                v = atoi(optarg);
+
+                if (v < 1 || v > 3) {
                     fprintf(stderr, "verbosity must be between 1 (low) and 3 (high)\n");
                     return 0;
                 }
+
+                if (v == 1 )
+                    verbosity = LOW;
+                if (v == 2 )
+                    verbosity = MEDIUM;
+                if (v == 3 )
+                    verbosity = HIGH;
             break;
 
             default:

@@ -4,6 +4,7 @@
 #include <netinet/ether.h>
 #include <netinet/in.h>
 
+#include "verbosity.h"
 #include "networkLayer.h"
 
-void handle_ethernet(const u_char* packet);
+void handle_ethernet(const u_char* packet, enum verbosity verbosity);
