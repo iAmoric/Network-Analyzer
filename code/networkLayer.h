@@ -26,5 +26,5 @@ struct arp_hdr {
     u_char tpa[4];      /* Target IP address       */
 };
 
-void handle_ip(const u_char* packet, enum verbosity verbosity);
-void handle_arp(const u_char* packet, enum verbosity verbosity);
+void handle_ip(const u_char* packet, int verbosity);
+void handle_arp(const u_char* packet, int verbosity);

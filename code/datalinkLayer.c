@@ -1,6 +1,6 @@
 #include "datalinkLayer.h"
 
-void handle_ethernet(const u_char* packet, enum verbosity verbosity){
+void handle_ethernet(const u_char* packet, int verbosity){
     struct ether_header* ethernet_hdr;
     int ethernet_size = sizeof(struct ether_header);
     ethernet_hdr = (struct ether_header*) packet;
@@ -16,13 +16,9 @@ void handle_ethernet(const u_char* packet, enum verbosity verbosity){
         printf("Src: %s, ", ether_ntoa((const struct ether_addr *) &ethernet_hdr->ether_dhost));
         printf("Dst: %s\n", ether_ntoa((const struct ether_addr *) &ethernet_hdr->ether_shost));
     }
-    /*else if (verbosity == LOW && type == ETHERTYPE_ARP){
-        printf("Src: %s\t", ether_ntoa((const struct ether_addr *) &ethernet_hdr->ether_dhost));
-        printf("Dst: %s\t", ether_ntoa((const struct ether_addr *) &ethernet_hdr->ether_shost));
-    }*/
+
 
     packet += ethernet_size;
-
 
     switch (type) {
         case ETHERTYPE_IP:

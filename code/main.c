@@ -18,7 +18,7 @@
 //buffer for error
 char errbuf[PCAP_ERRBUF_SIZE];
 
-enum verbosity verbosity;
+int verbosity;
 /**
 callback function
 */
@@ -145,19 +145,13 @@ int main(int argc, char **argv) {
             //verbosity
             case 'v':
                 //TODO gérer verbosity
-                v = atoi(optarg);
+                verbosity = atoi(optarg);
 
-                if (v < 1 || v > 3) {
+                if (verbosity < 1 || verbosity > 3) {
                     fprintf(stderr, "verbosity must be between 1 (low) and 3 (high)\n");
                     return 0;
                 }
 
-                if (v == 1 )
-                    verbosity = LOW;
-                if (v == 2 )
-                    verbosity = MEDIUM;
-                if (v == 3 )
-                    verbosity = HIGH;
             break;
 
             default:

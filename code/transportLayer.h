@@ -7,7 +7,9 @@
 #include <sys/socket.h>
 #include <netinet/udp.h>
 
+#include "verbosity.h"
+#include "port.h"
 #include "applicationLayer.h"
 
-void handle_tcp(const u_char* packet, int payload_size);
-void handle_udp(const u_char* packet, int payload_size);
+void handle_tcp(const u_char* packet, int payload_size, int verbosity);
+void handle_udp(const u_char* packet, int payload_size, int verbosity);
