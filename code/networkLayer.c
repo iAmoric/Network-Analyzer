@@ -86,70 +86,135 @@ void handle_ip(const u_char* packet, enum verbosity verbosity) {
         ARP
 */
 void handle_arp(const u_char* packet, enum verbosity verbosity) {
-	struct arphdr* arp_hdr;
-	arp_hdr = (struct arphdr*) packet;
+	struct arp_hdr* arp_hdr;
+	arp_hdr = (struct arp_hdr*) packet;
 
-	int hard_addr = ntohs(arp_hdr->ar_hrd);
-	int hard_pro = ntohs(arp_hdr->ar_pro);
+	int hard_addr = ntohs(arp_hdr->htype);
+	int hard_pro = ntohs(arp_hdr->ptype);
+    int i;
 
-	fprintf(stdout, "\tARP\n");
+    if (verbosity == HIGH)
+        printf("\tARP");
+    else if (verbosity == MEDIUM)
+        printf("ARP");
 
-	//hardware type
-	fprintf(stdout, "\t\tHardware type : ");
-	if (hard_addr == ARPHRD_ETHER) {
-		fprintf(stdout, "Ethernet ");
-	}
-	else {
-		fprintf(stdout, "%d ", hard_addr);
-	}
-	fprintf(stdout, "(%d) | ", arp_hdr->ar_hln);
+    //opcode
+    u_int16_t op = ntohs(arp_hdr->oper);
 
-	//hardware protocol
-	fprintf(stdout, "Hardware protocol : ");
-	if (hard_pro == 2048) {
-		fprintf(stdout, "IPv4 ");
-	}
-	else {
-		fprintf(stdout, "0x%x ", hard_pro);
-	}
-	fprintf(stdout, "(%d) | ", arp_hdr->ar_pln);
+    if (verbosity == HIGH) {
+        //hardware type
+    	printf("\n\t\tHardware type : ");
+    	if (hard_addr == 1) {
+    		printf("Ethernet ");
+    	}
+    	else {
+    		printf("Unknown ");
+    	}
 
-	//opcode
-	int op = ntohs(arp_hdr->ar_op);
-	switch (op) {
-		case ARPOP_REQUEST:
-			fprintf(stdout, "Request\n");
-		break;
-		case ARPOP_REPLY:
-			fprintf(stdout, "Reply\n");
-		break;
-		default:
-			fprintf(stdout, "unknown opcode : %d\n", op);
-		break;
-	}
+        //hardware length
+    	printf("(%d) | ", arp_hdr->hlen);
 
-	packet += sizeof(struct arphdr);
-	char mac_addr[arp_hdr->ar_hln];
-	char ip_addr[arp_hdr->ar_pln];
+    	//hardware protocol
+    	printf("Hardware protocol : ");
+    	if (hard_pro == 2048) {
+    		printf("IPv4 ");
+    	}
+    	else {
+    		printf("Unknown ");
+    	}
 
-	//sender
-	strncpy(mac_addr, (char*) packet, arp_hdr->ar_hln);
-	fprintf(stdout, "\t\tSender Mac : %s | ", ether_ntoa((const struct ether_addr *) &mac_addr));
-	packet += arp_hdr->ar_hln;
+        //protocol length
+    	printf("(%d) | ", arp_hdr->plen);
 
-	//TODO
-	//ip_addr = get_ip(packet);
-	//strncpy(ip_addr, (char*) packet, arp_hdr->ar_pln);
-	fprintf(stdout, "Sender IP : \n");
-	packet += arp_hdr->ar_pln;
+    	//opcode
+    	switch (op) {
+    		case ARPOP_REQUEST:
+    			printf("Request\n");
+    		break;
+    		case ARPOP_REPLY:
+    			printf("Reply\n");
+    		break;
+    		default:
+    			printf("unknown opcode : %d\n", op);
+    		break;
+    	}
 
+        if (hard_addr == 1 && hard_pro == 2048) {
+            //sender
+        	printf("\t\tSender Mac : ");
+            for (i = 0; i < 5; i++)
+                printf("%02x:", arp_hdr->sha[i]);
+            printf("%02x", arp_hdr->sha[i]);
+        	printf("\n");
 
-	//target
-	strncpy(mac_addr, (char*) packet, arp_hdr->ar_hln);
-	fprintf(stdout, "\t\tTarget Mac : %s | ", ether_ntoa((const struct ether_addr *) &mac_addr));
-	packet += arp_hdr->ar_hln;
+            printf("\t\tSender IP : ");
+            for (i = 0; i < 3; i++)
+                printf("%d.", arp_hdr->spa[i]);
+            printf("%d", arp_hdr->spa[i]);
+        	printf("\n");
 
-	//strncpy(ip_addr, (char*) packet, arp_hdr->ar_pln);
-	fprintf(stdout, "Target Ip : \n");
-	packet += arp_hdr->ar_pln;
+            //target
+            printf("\t\tTarget Mac : ");
+            for (i = 0; i < 5; i++)
+                printf("%02x:", arp_hdr->tha[i]);
+            printf("%02x", arp_hdr->tha[i]);
+        	printf("\n");
+
+            printf("\t\tTarget IP : ");
+            for (i = 0; i < 3; i++)
+                printf("%d.", arp_hdr->tpa[i]);
+            printf("%d", arp_hdr->tpa[i]);
+        	printf("\n");
+        }
+    }
+
+    else if (verbosity == MEDIUM) {
+        switch (op) {
+    		case ARPOP_REQUEST:
+    			printf(" (Request)\n");
+    		break;
+    		case ARPOP_REPLY:
+    			printf(" (Reply)\n");
+    		break;
+    		default:
+    			printf(" (unknown opcode : %d)\n", op);
+    		break;
+    	}
+    }
+
+    else if (verbosity == LOW) {
+        printf("Src: ");
+        for (i = 0; i < 5; i++)
+            printf("%02x:", arp_hdr->sha[i]);
+        printf("%02x", arp_hdr->sha[i]);
+        printf("\t");
+        printf("Dst: ");
+        for (i = 0; i < 5; i++)
+            printf("%02x:", arp_hdr->tha[i]);
+        printf("%02x", arp_hdr->tha[i]);
+        printf("\t");
+        printf("Protocol: ARP\t");
+        if (hard_addr == 1 && hard_pro == 2048) {
+            if (op == ARPOP_REQUEST) {
+                printf("Who has ");
+                for (i = 0; i < 3; i++)
+                    printf("%d.", arp_hdr->tpa[i]);
+                printf("%d", arp_hdr->tpa[i]);
+                printf("? Tell ");
+                for (i = 0; i < 3; i++)
+                    printf("%d.", arp_hdr->spa[i]);
+                printf("%d", arp_hdr->spa[i]);
+            }
+
+            else if (op == ARPOP_REPLY) {
+                for (i = 0; i < 3; i++)
+                    printf("%d.", arp_hdr->spa[i]);
+                printf("%d", arp_hdr->spa[i]);
+                printf(" is at ");
+                for (i = 0; i < 5; i++)
+                    printf("%02x:", arp_hdr->sha[i]);
+                printf("%02x", arp_hdr->sha[i]);
+            }
+        }
+    }
 }
