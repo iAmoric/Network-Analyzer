@@ -8,7 +8,8 @@
 #include <netinet/ip.h>
 #include <sys/socket.h>
 
+#include "verbosity.h"
 #include "transportLayer.h"
 
-void handle_ip(const u_char* packet);
-void handle_arp(const u_char* packet);
+void handle_ip(const u_char* packet, enum verbosity verbosity);
+void handle_arp(const u_char* packet, enum verbosity verbosity);

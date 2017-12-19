@@ -21,10 +21,10 @@ void handle_ethernet(const u_char* packet, enum verbosity verbosity){
 
     switch (type) {
         case ETHERTYPE_IP:
-            handle_ip(packet);
+            handle_ip(packet, verbosity);
         break;
         case ETHERTYPE_ARP:
-            handle_arp(packet);
+            handle_arp(packet, verbosity);
         break;
         case ETHERTYPE_IPV6:
             if (verbosity == HIGH)
