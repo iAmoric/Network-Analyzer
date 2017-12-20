@@ -98,7 +98,26 @@ void handle_tcp(const u_char* packet, int payload_size, int verbosity) {
 			break;
 
 		case LOW:
-			printf("TCP\t");
+			printf("TCP");
+			if (ntohs(tcp_hdr->th_sport) == HTTP || ntohs(tcp_hdr->th_dport) == HTTP)
+				printf("/HTTP\t");
+			else if (ntohs(tcp_hdr->th_sport) == HTTPS || ntohs(tcp_hdr->th_dport) == HTTPS)
+				printf("/HTTPS\t");
+			else if (ntohs(tcp_hdr->th_sport) == TELNET || ntohs(tcp_hdr->th_dport) == TELNET)
+				printf("/TELNET\t");
+			else if (ntohs(tcp_hdr->th_sport) == SMTPS || ntohs(tcp_hdr->th_dport) == SMTPS)
+				printf("/SMTPS\t");
+			else if (ntohs(tcp_hdr->th_sport) == SMTP || ntohs(tcp_hdr->th_dport) == SMTP)
+				printf("/SMTP\t");
+			else if (ntohs(tcp_hdr->th_sport) == FTP_DATA || ntohs(tcp_hdr->th_dport) == FTP_DATA)
+				printf("/FTP Dat\t");
+			else if (ntohs(tcp_hdr->th_sport) == FTP_REQUEST || ntohs(tcp_hdr->th_dport) == FTP_REQUEST)
+				printf("/FTP Req\t");
+			else if (ntohs(tcp_hdr->th_sport) == POP3 || ntohs(tcp_hdr->th_dport) == POP3)
+				printf("/POP3\t");
+			else if (ntohs(tcp_hdr->th_sport) == IMAP || ntohs(tcp_hdr->th_dport) == 143)
+				printf("/IMAP\t");
+
 			printf("%d -> %d ", ntohs(tcp_hdr->th_sport), ntohs(tcp_hdr->th_dport));
 
 			//flags
@@ -191,6 +210,11 @@ void handle_udp(const u_char* packet, int payload_size, int verbosity) {
 
 	if(ntohs(udp_hdr->uh_sport) == DNS || ntohs(udp_hdr->uh_dport) == DNS) {
         handle_dns(packet, verbosity);
+    }
+	if(ntohs(udp_hdr->uh_sport) == BOOTPC || ntohs(udp_hdr->uh_dport) == BOOTPC ||
+	   ntohs(udp_hdr->uh_sport) == BOOTPS || ntohs(udp_hdr->uh_dport) == BOOTPS) {
+        handle_bootp(packet, verbosity);
+		//printf("BOOTP\n");
     }
 
 }

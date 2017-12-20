@@ -11,5 +11,7 @@
 #define IMAP            143
 #define TELNET          23
 #define DNS             53
+#define BOOTPS          67
+#define BOOTPC          68
 
 #endif
