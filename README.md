@@ -15,7 +15,7 @@
 * [x] IP v4         
 * [x] TCP          
 * [X] UDP
-* [ ] BOOTP
+* [x] BOOTP
 * [ ] DHCP
 * [ ] DNS
 * [X] HTTP(S)
@@ -33,4 +33,4 @@
 * [ ] ip :  fragment offset
 * [x] tcp : options
 * [x] main : filters
-* [ ] main : verbosity
+* [x] main : verbosity
