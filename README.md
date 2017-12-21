@@ -36,3 +36,4 @@
 * [x] main : verbosity
 * [x] dhcp : make function for print ip addresses
 * [x] dhcp : verbosity medium & low
+* [ ] http : entete
