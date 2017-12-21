@@ -16,7 +16,7 @@ void handle_ftp(const u_char* payload, int payload_size, int is_request, int ver
 void handle_imap(const u_char* payload, int payload_size, int verbosity);
 void handle_dns(const u_char* packet, int verbosity);
 void handle_bootp(const u_char* packet, int verbosity);
-void handle_dhcp(const u_char* packet, int verbosity);
+void handle_dhcp(const u_char* packet, int verbosity, unsigned int xid);
 
 void printPrintableAscii(const u_char* payload, int payload_size);
 void printIPAddress(const u_char* payload, int payload_size);

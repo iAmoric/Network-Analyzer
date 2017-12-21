@@ -16,7 +16,7 @@
 * [x] TCP          
 * [X] UDP
 * [x] BOOTP
-* [ ] DHCP
+* [x] DHCP
 * [ ] DNS
 * [X] HTTP(S)
 * [x] FTP
@@ -35,4 +35,4 @@
 * [x] main : filters
 * [x] main : verbosity
 * [x] dhcp : make function for print ip addresses
-* [ ] dhcp : verbosity medium & low
+* [x] dhcp : verbosity medium & low

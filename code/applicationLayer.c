@@ -342,12 +342,11 @@ void handle_bootp(const u_char* packet, int verbosity) {
         return;
 
     packet = vendor + 4;
-    handle_dhcp(packet, verbosity);
+    handle_dhcp(packet, verbosity, xid);
 }
 
-void handle_dhcp(const u_char* packet, int verbosity){
+void handle_dhcp(const u_char* packet, int verbosity, unsigned int xid){
     int have_options = 1;
-    int is_advanced;
     unsigned char option;
     unsigned char length;
     const u_char *value;
@@ -357,10 +356,10 @@ void handle_dhcp(const u_char* packet, int verbosity){
         case HIGH:
             printf("\t\t\t\tDHCP \n");
             while (have_options) {
-                is_advanced = 0;
                 option = *packet++;
                 length = *packet++;
                 value = packet;
+
                 printf("\t\t\t\t\tOption %d: (%d) ", option, length);
 
                 have_options = displayOptionName(option);
@@ -373,9 +372,52 @@ void handle_dhcp(const u_char* packet, int verbosity){
             break;
 
         case MEDIUM:
+            //get the message type if exists
+            while (have_options) {
+                option = *packet++;
+                length = *packet++;
+                //quit if end of option
+                if (option == TAG_END)
+                    have_options = 0;
+                else {
+                    //if option is MESSAGE TYPE, display the type and quit
+                    if (option == TAG_DHCP_MSGTYPE) {
+                        displayOptionValue(option, packet, 0);
+                        have_options = 0;
+                    }
+                }
+                //shift the packet
+                for (int i = 0; i < length; i++)
+                    *packet++;
+            }
             break;
 
         case LOW:
+            printf("DHCP\t");
+            //get the message type if exists
+            while (have_options) {
+                option = *packet++;
+                length = *packet++;
+                //quit if end of option
+                if (option == TAG_END)
+                    have_options = 0;
+                else {
+                    //if option is MESSAGE TYPE, display the type and quit
+                    if (option == TAG_DHCP_MSGTYPE) {
+                        printf("Message type");
+                        displayOptionValue(option, packet, 0);
+                        printf(" - ");
+                        have_options = 0;
+                    }
+                }
+                //shift the packet
+                for (int i = 0; i < length; i++)
+                    *packet++;
+            }
+
+            printf("Transaction id 0x%x", xid);
+
+            break;
             break;
 
         default:
