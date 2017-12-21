@@ -1,7 +1,44 @@
 #include "applicationLayer.h"
 
 void printPrintableAscii(const u_char* payload, int payload_size){
-    int i = 0;
+    int i;
+    int j;
+
+    printf("\n" );
+    for(i = 0 ; i < payload_size ; i++) {
+        if (i != 0 && i%32 == 0) { //if one line of hex printing is complete...
+
+            printf("\t\t");
+            for(j = i-32; j < i; j++) {
+                if (isprint(payload[j]))
+                    printf("%c", payload[j]);
+                else printf(".");
+            }
+            printf("\n");
+        }
+
+        if(i%32 == 0) printf("\t\t\t\t");
+            printf("%02X ", payload[i]);
+
+        if (i == payload_size - 1) {  //print the last spaces
+
+            for(j = 0; j < 31 - i%32; j++)
+                printf("   "); //extra spaces
+
+            printf("\t\t");
+
+            for(j= i - i%32; j <= i; j++) {
+                if(isprint(payload[j]))
+                    printf("%c", payload[j]);
+                else
+                    printf(".");
+            }
+
+            printf( "\n" );
+        }
+    }
+
+    /*int i = 0;
     while (i < payload_size ) {
     	if (i%50 == 0){
     		printf("\n\t\t\t\t");
@@ -13,7 +50,7 @@ void printPrintableAscii(const u_char* payload, int payload_size){
     		printf(".");
     	}
     	i++;
-    }
+    }*/
 }
 
 void printIPAddress(const u_char* payload, int payload_size) {
@@ -150,21 +187,82 @@ void displayOptionValue(unsigned char option, const u_char* payload, int payload
     }
 }
 
+//return 1 if the data start with GET, POST or HTTP, else 0
+int has_header(const u_char* payload) {
+    if (payload[0] == 'G' && payload[1] == 'E' && payload[2] == 'T')
+        return 1;
+    else if (payload[0] == 'P' && payload[1] == 'O' && payload[2] == 'S' && payload[3] == 'T')
+        return 1;
+    else if (payload[0] == 'H' && payload[1] == 'T' && payload[2] == 'T' && payload[3] == 'P')
+        return 1;
+    return 0;
+}
+
+
+//print the header of the HTTP payload
+//return the size read
+int printHeader(const u_char* payload) {
+    int end = 0;
+    int i = 0;
+    int readSize = 0;
+    printf("\t\t\t\t");
+    while (1) {
+        if (payload[i] == 0x0d) {
+            if (payload[i+1] == 0x0a){
+                if (payload[i+2] == 0x0d && payload[i+3] == 0x0a) {
+                    readSize+=4;
+                    break;
+                }
+                printf("\n\t\t\t\t");
+            }
+        }
+        if (isprint(payload[i]))
+            printf("%c", payload[i]);
+        i++;
+        readSize++;
+    }
+    return readSize;
+}
+
 
 void handle_http(const u_char* payload, int payload_size, int is_secured, int verbosity) {
+    const u_char* pld = payload;
+
     switch (verbosity) {
         case HIGH:
                 printf("\t\t\tHTTP");
-                if (is_secured)
+                if (is_secured) {
                     printf("S");
-                if (payload_size > 0)
+                    break;
+                }
+
+                //do not print the rest if there is no data
+                if (payload_size <= 0)
+                    break;
+
+                //header
+                if (has_header(payload)) {
+                    printf("\n\t\t\t\tHeader:\n");
+                    int shift = printHeader(payload);
+
+                    //shift the payload
+                    payload += shift;
+                    payload_size -= shift;
+                }
+
+                //data
+                if (payload_size > 0){
+                    printf("\n\t\t\t\tData:");
                     printPrintableAscii(payload, payload_size);
+                }
             break;
+
         case MEDIUM:
             printf("HTTP");
             if (is_secured)
                 printf("S");
             break;
+
         case LOW:
             break;
         default:
@@ -355,6 +453,7 @@ void handle_dhcp(const u_char* packet, int verbosity, unsigned int xid){
     switch (verbosity) {
         case HIGH:
             printf("\t\t\t\tDHCP \n");
+            //get all options
             while (have_options) {
                 option = *packet++;
                 length = *packet++;
@@ -362,10 +461,13 @@ void handle_dhcp(const u_char* packet, int verbosity, unsigned int xid){
 
                 printf("\t\t\t\t\tOption %d: (%d) ", option, length);
 
+                //print name and value
                 have_options = displayOptionName(option);
                 displayOptionValue(option, value, length);
 
                 printf("\n");
+
+                //shift
                 for (int i = 0; i < length; i++)
                     *packet++;
             }

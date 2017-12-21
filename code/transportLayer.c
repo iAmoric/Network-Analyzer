@@ -118,6 +118,10 @@ void handle_tcp(const u_char* packet, int payload_size, int verbosity) {
 			else if (ntohs(tcp_hdr->th_sport) == IMAP || ntohs(tcp_hdr->th_dport) == 143)
 				printf("/IMAP\t");
 
+			//do not print the rest if HTTP and if there is data
+			if ((ntohs(tcp_hdr->th_sport) == HTTP || ntohs(tcp_hdr->th_dport) == HTTP) && payload_size != 0)
+				break;
+
 			printf("%d -> %d ", ntohs(tcp_hdr->th_sport), ntohs(tcp_hdr->th_dport));
 
 			//flags
@@ -141,6 +145,7 @@ void handle_tcp(const u_char* packet, int payload_size, int verbosity) {
 			printf("Ack=%d ", ntohs(tcp_hdr->th_ack));
 			printf("Len=%d ", payload_size);
 			printf("Win=%d\n", ntohs(tcp_hdr->th_win));
+
 			break;
 
 		default:

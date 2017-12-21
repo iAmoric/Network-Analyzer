@@ -23,3 +23,5 @@ void printIPAddress(const u_char* payload, int payload_size);
 void printAscii(const u_char* payload, int payload_size);
 int displayOptionName(unsigned char option);
 void displayOptionValue(unsigned char option, const u_char* payload, int payload_size);
+int has_header(const u_char* payload);
+int printHeader(const u_char* payload);
