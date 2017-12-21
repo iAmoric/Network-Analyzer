@@ -16,6 +16,140 @@ void printPrintableAscii(const u_char* payload, int payload_size){
     }
 }
 
+void printIPAddress(const u_char* payload, int payload_size) {
+    int cpt = payload_size / 4;
+    printf(": ");
+    for (int j = 0; j < cpt-1; j++){
+        for (int i = 0; i < payload_size-1; i++)
+            printf("%d.", *payload++);
+        printf("%d | ", *payload++);
+    }
+    for (int i = 0; i < payload_size-1; i++)
+        printf("%d.", *payload++);
+    printf("%d", *payload++);
+}
+
+void printAscii(const u_char* payload, int payload_size) {
+    printf(": ");
+    for (int i = 0; i < payload_size; i++)
+        printf("%c", *payload++);
+}
+
+int displayOptionName(unsigned char option) {
+    int end = 1;
+    switch (option) {
+        case TAG_SUBNET_MASK:       //1
+            printf("Subnet mask");
+            break;
+        case TAG_TIME_OFFSET:       //2
+            printf("Time offset");
+            break;
+        case TAG_GATEWAY:           //3
+            printf("Gateway");
+            break;
+        case TAG_DOMAIN_SERVER:     //6
+            printf("Domain Name Server");
+            break;
+        case TAG_HOSTNAME:          //12
+            printf("Host name");
+            break;
+        case TAG_DOMAINNAME:        //15
+            printf("Domain name");
+            break;
+        case TAG_BROAD_ADDR:        //28
+            printf("Broadcast address");
+            break;
+        case TAG_NETBIOS_NS:        //44
+            printf("Netbios over name server");
+            break;
+        case TAG_NETBIOS_SCOPE:     //47
+            printf("Netbios over scope");
+            break;
+        case TAG_REQ_ADDR:          //50
+            printf("Requested IP address");
+            break;
+        case TAG_LEASETIME:         //51
+            printf("Lease time");
+            break;
+        case TAG_DHCP_MSGTYPE:      //53
+            printf("DHCP message type");
+            break;
+        case TAG_SERVERID:          //54
+            printf("Server identifier");
+            break;
+        case TAG_PARAM_REQ:         //54
+            printf("Parameter request list");
+            break;
+        case TAG_CLASSID:           //60
+            printf("Client identifier");
+            break;
+        case TAG_END:               //255
+            printf("End");
+            end = 0;
+            break;
+        default:
+            printf("Unknown");
+            break;
+    }
+    return end;
+}
+
+void displayOptionValue(unsigned char option, const u_char* payload, int payload_size){
+    //print an ip address if the value is an option address
+    if (option == TAG_SUBNET_MASK || option == TAG_GATEWAY || option == TAG_DOMAIN_SERVER ||
+        option == TAG_BROAD_ADDR || option == TAG_NETBIOS_NS || option == TAG_REQ_ADDR ||
+        option == TAG_SERVERID) {
+        printIPAddress(payload, payload_size);
+    }
+
+    //print the ascii charactere if the value is text
+    if (option == TAG_HOSTNAME || option == TAG_DOMAINNAME) {
+        printAscii(payload, payload_size);
+    }
+
+    // for all options of the request list, print the option name
+    if (option == TAG_PARAM_REQ) {
+        printf(": ");
+        for (int i = 0; i < payload_size; i++){
+            printf("\n\t\t\t\t\t\t");
+            option = *payload++;
+            printf("Option %d: ", option);
+            displayOptionName(option);
+        }
+    }
+
+    // print the dhcp message type if required
+    if (option == TAG_DHCP_MSGTYPE) {
+        printf(": ");
+        option = *payload;
+        switch (option) {
+            case DHCPDISCOVER:
+                printf("Discover");
+                break;
+            case DHCPOFFER:
+                printf("Offer");
+                break;
+            case DHCPREQUEST:
+                printf("Request");
+                break;
+            case DHCPDECLINE:
+                printf("Decline");
+                break;
+            case DHCPACK:
+                printf("Ack");
+                break;
+            case DHCPNAK:
+                printf("N-Ack");
+                break;
+            case DHCPRELEASE:
+                printf("Release");
+                break;
+            default:
+                break;
+        }
+    }
+}
+
 
 void handle_http(const u_char* payload, int payload_size, int is_secured, int verbosity) {
     switch (verbosity) {
@@ -38,7 +172,6 @@ void handle_http(const u_char* payload, int payload_size, int is_secured, int ve
     }
 }
 
-
 void handle_pop(const u_char* payload, int payload_size, int verbosity) {
     switch (verbosity) {
         case HIGH:
@@ -57,7 +190,6 @@ void handle_pop(const u_char* payload, int payload_size, int verbosity) {
     }
 
 }
-
 
 void handle_smtp(const u_char* payload, int payload_size, int is_secured, int verbosity) {
     switch (verbosity) {
@@ -102,7 +234,6 @@ void handle_telnet(const u_char* packet, int verbosity){
     printf("\t\t\tTELNET");
 }
 
-
 void handle_ftp(const u_char* payload, int payload_size, int is_request, int verbosity){
     switch (verbosity) {
         case HIGH:
@@ -129,11 +260,9 @@ void handle_ftp(const u_char* payload, int payload_size, int is_request, int ver
 
 }
 
-
 void handle_dns(const u_char* packet, int verbosity) {
     printf("\t\t\tDNS\n");
 }
-
 
 void handle_bootp(const u_char* packet, int verbosity) {
     struct bootp* bootp_hdr = (struct bootp*) packet;
@@ -208,6 +337,7 @@ void handle_bootp(const u_char* packet, int verbosity) {
             break;
     }
 
+    //if there is no Magic cookie, do not continue to dhcp
     if(memcmp(vendor, magic_cookie, 4) != 0)
         return;
 
@@ -215,128 +345,41 @@ void handle_bootp(const u_char* packet, int verbosity) {
     handle_dhcp(packet, verbosity);
 }
 
-
 void handle_dhcp(const u_char* packet, int verbosity){
-    printf("\t\t\t\tDHCP \n");
     int have_options = 1;
     int is_advanced;
     unsigned char option;
     unsigned char length;
+    const u_char *value;
+    int cpt;
 
-    while (have_options) {
-        is_advanced = 0;
-        option = *packet++;
-        length = *packet++;
+    switch (verbosity) {
+        case HIGH:
+            printf("\t\t\t\tDHCP \n");
+            while (have_options) {
+                is_advanced = 0;
+                option = *packet++;
+                length = *packet++;
+                value = packet;
+                printf("\t\t\t\t\tOption %d: (%d) ", option, length);
 
-        printf("\t\t\t\t\tOption: (%d) ", option);
+                have_options = displayOptionName(option);
+                displayOptionValue(option, value, length);
 
-        switch (option) {
+                printf("\n");
+                for (int i = 0; i < length; i++)
+                    *packet++;
+            }
+            break;
 
-            case TAG_SUBNET_MASK:       //1
-                printf("Subnet mask: ");
-                /*for (int i = 0; i < length-1; i++)
-                    printf("%d.", *packet++);
-                printf("%d", *packet++);
-                is_advanced = 1;*/
-                break;
+        case MEDIUM:
+            break;
 
-            case TAG_TIME_OFFSET:       //2
-                printf("Time offset: ");
-                break;
+        case LOW:
+            break;
 
-            case TAG_GATEWAY:           //3
-                printf("Gateway: ");
-                /*for (int i = 0; i < length-1; i++)
-                    printf("%d.", *packet++);
-                printf("%d", *packet++);
-                int is_advanced = 1;*/
-                break;
-
-            case TAG_DOMAIN_SERVER:     //6
-                printf("Domain Name Server: ");
-                break;
-
-            case TAG_HOSTNAME:          //12
-                printf("Host name: ");
-                break;
-
-            case TAG_DOMAINNAME:        //15
-                printf("Domain name: ");
-                break;
-
-            case TAG_BROAD_ADDR:        //28
-                printf("Broadcast address: ");
-                break;
-
-            case TAG_NETBIOS_NS:        //44
-                printf("Netbios over name server: ");
-                break;
-
-            case TAG_NETBIOS_SCOPE:     //47
-                printf("Netbios over scope: ");
-                break;
-            case TAG_REQ_ADDR:          //50
-                printf("Requested IP address: ");
-                break;
-            case TAG_LEASETIME:         //51
-                printf("Lease time: ");
-                break;
-            case TAG_DHCP_MSGTYPE:      //53
-                printf("DHCP message type: ");
-                break;
-            case TAG_SERVERID:          //54
-                printf("Server identifier: ");
-                break;
-            case TAG_PARAM_REQ:         //54
-                printf("Parameter request list: ");
-                break;
-            case TAG_CLASSID:           //60
-                printf("Client identifier: ");
-                break;
-
-            /*case TAG_DHCP_MESSAGE:
-                u_int8_t dhcp_message = *packet;
-                switch (dhcp_message) {
-                    case DHCPDISCOVER:
-                        printf("DHCP Discover");
-                        break;
-                    case DHCPOFFER:
-                        printf("DHCP Offer");
-                        break;
-                    case DHCPREQUEST:
-                        printf("DHCP Request");
-                        break;
-                    case DHCPDECLINE:
-                        printf("DHCP Decline");
-                        break;
-                    case DHCPACK:
-                        printf("DHCP Ack");
-                        break;
-                    case DHCPNAK:
-                        printf("DHCP N-Ack");
-                        break;
-                    case DHCPRELEASE:
-                        printf("DHCP Release");
-                        break;
-                    case DHCPINFORM:
-                        printf("DHCP Inform");
-                        break;
-                    default:
-                        break;
-                }
-                break;*/
-
-            case TAG_END:
-                printf("End");
-                have_options = 0;
-                break;
-
-            default:
-                break;
-        }
-        printf("\n");
-        for (int i = 0; i < length; i++)
-            *packet++;
-
+        default:
+            break;
     }
+
 }

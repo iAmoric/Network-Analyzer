@@ -34,3 +34,5 @@
 * [x] tcp : options
 * [x] main : filters
 * [x] main : verbosity
+* [x] dhcp : make function for print ip addresses
+* [ ] dhcp : verbosity medium & low

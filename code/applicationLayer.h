@@ -19,3 +19,7 @@ void handle_bootp(const u_char* packet, int verbosity);
 void handle_dhcp(const u_char* packet, int verbosity);
 
 void printPrintableAscii(const u_char* payload, int payload_size);
+void printIPAddress(const u_char* payload, int payload_size);
+void printAscii(const u_char* payload, int payload_size);
+int displayOptionName(unsigned char option);
+void displayOptionValue(unsigned char option, const u_char* payload, int payload_size);
