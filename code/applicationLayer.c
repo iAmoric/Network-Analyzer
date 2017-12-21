@@ -37,20 +37,6 @@ void printPrintableAscii(const u_char* payload, int payload_size){
             printf( "\n" );
         }
     }
-
-    /*int i = 0;
-    while (i < payload_size ) {
-    	if (i%50 == 0){
-    		printf("\n\t\t\t\t");
-    	}
-    	if(isprint(payload[i])){
-    		printf("%c", payload[i]);
-    	}
-    	else{
-    		printf(".");
-    	}
-    	i++;
-    }*/
 }
 
 void printIPAddress(const u_char* payload, int payload_size) {
@@ -191,24 +177,34 @@ void displayOptionValue(unsigned char option, const u_char* payload, int payload
 int has_header(const u_char* payload) {
     if (payload[0] == 'G' && payload[1] == 'E' && payload[2] == 'T')
         return 1;
+
     else if (payload[0] == 'P' && payload[1] == 'O' && payload[2] == 'S' && payload[3] == 'T')
         return 1;
+
     else if (payload[0] == 'H' && payload[1] == 'T' && payload[2] == 'T' && payload[3] == 'P')
         return 1;
+
     return 0;
 }
 
 
 //print the header of the HTTP payload
 //return the size read
-int printHeader(const u_char* payload) {
+int printHeader(const u_char* payload, int verbosity) {
     int end = 0;
     int i = 0;
     int readSize = 0;
-    printf("\t\t\t\t");
+
+    if (verbosity == HIGH)
+        printf("\t\t\t\t");
+
     while (1) {
         if (payload[i] == 0x0d) {
             if (payload[i+1] == 0x0a){
+                if (verbosity != HIGH)   //only print the first line for low/Medium verbosity
+                    break;
+
+                //if there is "0d 0a 0d 0a" stop and return the read size
                 if (payload[i+2] == 0x0d && payload[i+3] == 0x0a) {
                     readSize+=4;
                     break;
@@ -226,14 +222,12 @@ int printHeader(const u_char* payload) {
 
 
 void handle_http(const u_char* payload, int payload_size, int is_secured, int verbosity) {
-    const u_char* pld = payload;
-
     switch (verbosity) {
         case HIGH:
                 printf("\t\t\tHTTP");
                 if (is_secured) {
                     printf("S");
-                    break;
+                    break;  //do not continue if encrypted
                 }
 
                 //do not print the rest if there is no data
@@ -243,7 +237,7 @@ void handle_http(const u_char* payload, int payload_size, int is_secured, int ve
                 //header
                 if (has_header(payload)) {
                     printf("\n\t\t\t\tHeader:\n");
-                    int shift = printHeader(payload);
+                    int shift = printHeader(payload, verbosity);
 
                     //shift the payload
                     payload += shift;
@@ -259,12 +253,39 @@ void handle_http(const u_char* payload, int payload_size, int is_secured, int ve
 
         case MEDIUM:
             printf("HTTP");
-            if (is_secured)
+            if (is_secured) {
                 printf("S");
+                break;  //do not continue if encrypted
+            }
+
+            //do not print the rest if there is no data
+            if (payload_size <= 0)
+                break;
+
+
+            //header
+            if (has_header(payload)) {
+                printf(", ");
+                printHeader(payload, verbosity);
+            }
+
             break;
 
         case LOW:
+            //do not continue if encrypted
+            if (is_secured)
+                break;
+
+            //do not print the rest if there is no data
+            if (payload_size <= 0)
+                break;
+
+            //header
+            if (has_header(payload))
+                printHeader(payload, verbosity);
+
             break;
+
         default:
             break;
     }

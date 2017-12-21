@@ -95,6 +95,7 @@ void handle_tcp(const u_char* packet, int payload_size, int verbosity) {
 			printf("Seq: %d, ", ntohs(tcp_hdr->th_seq));
 			printf("Ack: %d, ", ntohs(tcp_hdr->th_ack));
 			printf("Len: %d\n", payload_size);
+			packet += data_offset;
 			break;
 
 		case LOW:
@@ -119,8 +120,11 @@ void handle_tcp(const u_char* packet, int payload_size, int verbosity) {
 				printf("/IMAP\t");
 
 			//do not print the rest if HTTP and if there is data
-			if ((ntohs(tcp_hdr->th_sport) == HTTP || ntohs(tcp_hdr->th_dport) == HTTP) && payload_size != 0)
+			if ((ntohs(tcp_hdr->th_sport) == HTTP || ntohs(tcp_hdr->th_dport) == HTTP) && payload_size != 0) {
+				packet += data_offset;
 				break;
+			}
+
 
 			printf("%d -> %d ", ntohs(tcp_hdr->th_sport), ntohs(tcp_hdr->th_dport));
 
@@ -145,13 +149,12 @@ void handle_tcp(const u_char* packet, int payload_size, int verbosity) {
 			printf("Ack=%d ", ntohs(tcp_hdr->th_ack));
 			printf("Len=%d ", payload_size);
 			printf("Win=%d\n", ntohs(tcp_hdr->th_win));
-
+			packet += data_offset;
 			break;
 
 		default:
 			break;
 	}
-
 
 	if (ntohs(tcp_hdr->th_sport) == HTTP || ntohs(tcp_hdr->th_dport) == HTTP)
 		handle_http(packet, payload_size, 0, verbosity);
