@@ -36,4 +36,7 @@
 * [x] main : verbosity
 * [x] dhcp : make function for print ip addresses
 * [x] dhcp : verbosity medium & low
-* [x] http : entete
+* [x] http : header
+* [ ] telnet : check negotiation option
+* [ ] telnet : verbosity medium & low
+* [ ] telnet : check indentation data

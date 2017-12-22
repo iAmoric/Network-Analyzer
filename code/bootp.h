@@ -24,6 +24,8 @@
  * without express or implied warranty.
  */
 
+ #ifndef _BOOTP_H_
+ #define _BOOTP_H_
 
 struct bootp {
 	unsigned char	bp_op;		    /* packet opcode type */
@@ -139,3 +141,6 @@ struct cmu_vend {
 #define VF_SMASK	1	/* Subnet mask field contains valid data */
 
 extern void	bootp(int);
+
+
+#endif

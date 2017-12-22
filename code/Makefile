@@ -1,5 +1,5 @@
-analyzer : main.o datalinkLayer.o networkLayer.o transportLayer.o applicationLayer.o
-	gcc main.o datalinkLayer.o networkLayer.o transportLayer.o applicationLayer.o -o analyzer -Wall -Wextra -Werror -lpcap -g
+analyzer : main.o datalinkLayer.o networkLayer.o transportLayer.o applicationLayer.o helper.o
+	gcc main.o datalinkLayer.o networkLayer.o transportLayer.o applicationLayer.o helper.o -o analyzer -Wall -Wextra -Werror -lpcap -g
 
 main.o : main.c
 	gcc -c main.c -o main.o -g
@@ -15,6 +15,9 @@ transportLayer.o : transportLayer.c transportLayer.h
 
 applicationLayer.o : applicationLayer.c applicationLayer.h
 	gcc -c applicationLayer.c -o applicationLayer.o -g
+
+helper.o : helper.c helper.h
+	gcc -c helper.c -o helper.o -g
 
 clean:
 	rm -rf *.o

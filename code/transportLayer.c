@@ -125,6 +125,13 @@ void handle_tcp(const u_char* packet, int payload_size, int verbosity) {
 				break;
 			}
 
+			if ((ntohs(tcp_hdr->th_sport) == TELNET || ntohs(tcp_hdr->th_dport) == TELNET) && payload_size != 0) {
+				packet += data_offset;
+				break;
+			}
+
+
+
 
 			printf("%d -> %d ", ntohs(tcp_hdr->th_sport), ntohs(tcp_hdr->th_dport));
 
@@ -163,7 +170,7 @@ void handle_tcp(const u_char* packet, int payload_size, int verbosity) {
 		handle_http(packet, payload_size, 1, verbosity);
 
 	else if (ntohs(tcp_hdr->th_sport) == TELNET || ntohs(tcp_hdr->th_dport) == TELNET)
-		handle_telnet(packet, verbosity);
+		handle_telnet(packet, payload_size, verbosity);
 
 	else if (ntohs(tcp_hdr->th_sport) == SMTPS || ntohs(tcp_hdr->th_dport) == SMTPS)
 		handle_smtp(packet, payload_size, 1, verbosity);
