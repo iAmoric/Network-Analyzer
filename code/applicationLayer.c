@@ -146,11 +146,22 @@ void handle_telnet(const u_char* payload, int payload_size, int verbosity){
                 }
 
             break;
+
         case MEDIUM:
-            printf("TELNET");
-        case LOW:
-            printf("TELNET Options ...\n");
+            if (is_command(payload))
+                printf("TELNET Commands...");
+            else
+                printf("TELNET Data...");
             break;
+
+        case LOW:
+            if (is_command(payload))
+                printf("TELNET Commands...");
+            else
+                printf("TELNET Data...");
+            printf("\n");
+            break;
+
         default:
             break;
     }
