@@ -261,11 +261,13 @@ void printTelnetOptions(int option){
             break;
         default:
             printf("Unknown");
+            break;
     }
 }
 void printTelnetCommand(const u_char *payload, int payload_size) {
     int command, option;
     int i, next;
+    int h, w;
     const u_char* end = payload + payload_size;
 
     while (payload < end) {
@@ -302,7 +304,9 @@ void printTelnetCommand(const u_char *payload, int payload_size) {
                             printf(": %d", *payload++);
                             break;
                         case TELOPT_NAWS:
-                            printf(": %d x %d", payload[0], payload[2]);
+                            w = (payload[0] << 8) + payload[1];
+                            h = (payload[2] << 8) + payload[3];
+                            printf(": %d x %d", w, h);
                             payload += 4;
                             break;
                         default:
@@ -311,8 +315,9 @@ void printTelnetCommand(const u_char *payload, int payload_size) {
                             i = 0;
                             while (next != 0xff)
                                 next = payload[i++];
-                            payload += i;
+                            payload += (i-1);
                             break;
+
 
                     }
                 break;
