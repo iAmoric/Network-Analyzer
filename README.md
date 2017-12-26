@@ -13,17 +13,17 @@
 * [x] ETHERNET
 * [x] ARP           
 * [x] IP v4         
-* [x] TCP          
-* [X] UDP
+* [x] TCP
+* [x] UDP
 * [x] BOOTP
 * [x] DHCP
 * [ ] DNS
-* [X] HTTP(S)
+* [x] HTTP(S)
 * [x] FTP
 * [x] SMTP(S)
 * [x] POP3
 * [x] IMAP
-* [ ] Telnet
+* [x] Telnet
 
 
 ## TODO
@@ -39,4 +39,5 @@
 * [x] http : header
 * [x] telnet : check negotiation option
 * [x] telnet : verbosity medium & low
-* [ ] telnet : check indentation data
+* [x] telnet : check indentation data
+* [ ] ftp request : verbosity low

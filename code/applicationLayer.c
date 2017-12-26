@@ -136,6 +136,7 @@ void handle_telnet(const u_char* payload, int payload_size, int verbosity){
                 //do not continue if there is no data
                 if (payload_size <= 0)
                     break;
+
                 if (is_command(payload)) {
                     printf("\t\t\t\tCommands\n");
                     printTelnetCommand(payload, payload_size);
@@ -256,7 +257,7 @@ void handle_bootp(const u_char* packet, int verbosity) {
                 break;
 
         case MEDIUM:
-            printf("BOOTP ");
+            printf("BOOTP");
             break;
 
         case LOW:
@@ -291,20 +292,24 @@ void handle_dhcp(const u_char* packet, int verbosity, unsigned int xid){
             //get all options
             while (have_options) {
                 option = *packet++;
-                length = *packet++;
-                value = packet;
+                if (option == 0)
+                    printf("\t\t\t\t\tOption %d: (0) Padding\n", option);
+                else {
+                    length = *packet++;
+                    value = packet;
 
-                printf("\t\t\t\t\tOption %d: (%d) ", option, length);
+                    printf("\t\t\t\t\tOption %d: (%d) ", option, length);
 
-                //print name and value
-                have_options = displayOptionName(option);
-                displayOptionValue(option, value, length);
+                    //print name and value
+                    have_options = displayOptionName(option);
+                    displayOptionValue(option, value, length);
 
-                printf("\n");
+                    printf("\n");
 
-                //shift
-                for (int i = 0; i < length; i++)
+                    //shift
+                    for (int i = 0; i < length; i++)
                     *packet++;
+                }
             }
             break;
 

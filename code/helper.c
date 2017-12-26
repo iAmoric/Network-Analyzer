@@ -54,6 +54,7 @@ void printIPAddress(const u_char* payload, int payload_size) {
 
 void printAscii(const u_char* payload, int payload_size) {
     printf(": ");
+    printf("\n\t\t\t\t");
     for (int i = 0; i < payload_size; i++)
         printf("%c", *payload++);
 }

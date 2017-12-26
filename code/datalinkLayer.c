@@ -8,13 +8,13 @@ void handle_ethernet(const u_char* packet, int verbosity){
 
     if (verbosity == HIGH){
         printf("ETHERNET\n");
-        printf("\t@Dest: %s\n", ether_ntoa((const struct ether_addr *) &ethernet_hdr->ether_dhost));
-        printf("\t@Src: %s\n", ether_ntoa((const struct ether_addr *) &ethernet_hdr->ether_shost));
+        printf("\tSrc: %s\n", ether_ntoa((const struct ether_addr *) &ethernet_hdr->ether_shost));
+        printf("\tDst: %s\n", ether_ntoa((const struct ether_addr *) &ethernet_hdr->ether_dhost));
     }
     else if (verbosity == MEDIUM) {
         printf("ETHERNET, ");
-        printf("Src: %s, ", ether_ntoa((const struct ether_addr *) &ethernet_hdr->ether_dhost));
-        printf("Dst: %s\n", ether_ntoa((const struct ether_addr *) &ethernet_hdr->ether_shost));
+        printf("Src: %s, ", ether_ntoa((const struct ether_addr *) &ethernet_hdr->ether_shost));
+        printf("Dst: %s\n", ether_ntoa((const struct ether_addr *) &ethernet_hdr->ether_dhost));
     }
 
 

@@ -229,7 +229,6 @@ void handle_udp(const u_char* packet, int payload_size, int verbosity) {
 	if(ntohs(udp_hdr->uh_sport) == BOOTPC || ntohs(udp_hdr->uh_dport) == BOOTPC ||
 	   ntohs(udp_hdr->uh_sport) == BOOTPS || ntohs(udp_hdr->uh_dport) == BOOTPS) {
         handle_bootp(packet, verbosity);
-		//printf("BOOTP\n");
     }
 
 }
