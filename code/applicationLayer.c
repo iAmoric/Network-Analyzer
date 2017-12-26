@@ -174,12 +174,20 @@ void handle_ftp(const u_char* payload, int payload_size, int is_request, int ver
     switch (verbosity) {
         case HIGH:
                 printf("\t\t\tFTP");
-                if (is_request)
+                if (is_request) {
                     printf(" (request)");
-                else
+                    if (payload_size > 0) {
+                        printf(": ");
+                        printAscii(payload, payload_size);
+                    }
+
+                }
+
+                else {
                     printf(" (data)");
-                if (payload_size > 0)
-                    printPrintableAscii(payload, payload_size);
+                    if (payload_size > 0)
+                        printPrintableAscii(payload, payload_size);
+                }
             break;
         case MEDIUM:
             printf("FTP");
