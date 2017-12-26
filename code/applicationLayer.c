@@ -143,6 +143,8 @@ void handle_telnet(const u_char* payload, int payload_size, int verbosity){
                 }
                 else {
                     printf("\t\t\t\tData");
+                    printf(": ");
+                    printf("\n\t\t\t\t");
                     printAscii(payload, payload_size);
                 }
 
@@ -187,6 +189,11 @@ void handle_ftp(const u_char* payload, int payload_size, int is_request, int ver
                 printf(" (data)");
             break;
         case LOW:
+            if (is_request) {
+                printf("Request");
+                printf(": ");
+                printAscii(payload, payload_size);
+            }
             break;
         default:
             break;

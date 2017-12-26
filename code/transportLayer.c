@@ -119,13 +119,18 @@ void handle_tcp(const u_char* packet, int payload_size, int verbosity) {
 			else if (ntohs(tcp_hdr->th_sport) == IMAP || ntohs(tcp_hdr->th_dport) == 143)
 				printf("/IMAP\t");
 
-			//do not print the rest if HTTP and if there is data
+			//do not print the rest if HTTP/Telnet/FTP(request) and if there is data
 			if ((ntohs(tcp_hdr->th_sport) == HTTP || ntohs(tcp_hdr->th_dport) == HTTP) && payload_size != 0) {
 				packet += data_offset;
 				break;
 			}
 
 			if ((ntohs(tcp_hdr->th_sport) == TELNET || ntohs(tcp_hdr->th_dport) == TELNET) && payload_size != 0) {
+				packet += data_offset;
+				break;
+			}
+
+			if ((ntohs(tcp_hdr->th_sport) == FTP_REQUEST || ntohs(tcp_hdr->th_dport) == FTP_REQUEST) && payload_size != 0) {
 				packet += data_offset;
 				break;
 			}

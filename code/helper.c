@@ -53,8 +53,6 @@ void printIPAddress(const u_char* payload, int payload_size) {
 }
 
 void printAscii(const u_char* payload, int payload_size) {
-    printf(": ");
-    printf("\n\t\t\t\t");
     for (int i = 0; i < payload_size; i++)
         printf("%c", *payload++);
 }
@@ -128,6 +126,8 @@ void displayOptionValue(unsigned char option, const u_char* payload, int payload
 
     //print the ascii charactere if the value is text
     if (option == TAG_HOSTNAME || option == TAG_DOMAINNAME) {
+        printf(": ");
+        printf("\n\t\t\t\t");
         printAscii(payload, payload_size);
     }
 

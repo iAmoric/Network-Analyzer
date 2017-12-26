@@ -40,4 +40,4 @@
 * [x] telnet : check negotiation option
 * [x] telnet : verbosity medium & low
 * [x] telnet : check indentation data
-* [ ] ftp request : verbosity low
+* [x] ftp request : verbosity low
