@@ -1,12 +1,24 @@
+
+/**
+ * Created by Lucas Pierrat.
+ */
+
 #include "applicationLayer.h"
 
+/**
+ * @brief this function processes the http protocol
+ * @param payload
+ * @param payload_size
+ * @param is_secured: 1 if it is the secure version of http, else 0
+ * @param verbosity
+ */
 void handle_http(const u_char* payload, int payload_size, int is_secured, int verbosity) {
     switch (verbosity) {
         case HIGH:
-                printf("\t\t\tHTTP");
+                fprintf(stdout, "\t\t\tHTTP");
                 if (is_secured) {
-                    printf("S");
-                    break;  //do not continue if encrypted
+                    fprintf(stdout, "S");
+                    break;  //encrypted, do not continue
                 }
 
                 //do not print the rest if there is no data
@@ -15,7 +27,7 @@ void handle_http(const u_char* payload, int payload_size, int is_secured, int ve
 
                 //header
                 if (has_header(payload)) {
-                    printf("\n\t\t\t\tHeader:\n");
+                    fprintf(stdout, "\n\t\t\t\tHeader:\n");
                     int shift = printHeader(payload, verbosity);
 
                     //shift the payload
@@ -25,15 +37,15 @@ void handle_http(const u_char* payload, int payload_size, int is_secured, int ve
 
                 //data
                 if (payload_size > 0){
-                    printf("\n\t\t\t\tData:");
-                    printPrintableAscii(payload, payload_size);
+                    fprintf(stdout, "\n\t\t\t\tData:");
+                    printHexaAscii(payload, payload_size);
                 }
             break;
 
         case MEDIUM:
-            printf("HTTP");
+            fprintf(stdout, "HTTP");
             if (is_secured) {
-                printf("S");
+                fprintf(stdout, "S");
                 break;  //do not continue if encrypted
             }
 
@@ -44,7 +56,7 @@ void handle_http(const u_char* payload, int payload_size, int is_secured, int ve
 
             //header
             if (has_header(payload)) {
-                printf(", ");
+                fprintf(stdout, ", ");
                 printHeader(payload, verbosity);
             }
 
@@ -62,6 +74,8 @@ void handle_http(const u_char* payload, int payload_size, int is_secured, int ve
             //header
             if (has_header(payload))
                 printHeader(payload, verbosity);
+            else
+                fprintf(stdout, "Data - %d bytes", payload_size);
 
             break;
 
@@ -70,18 +84,28 @@ void handle_http(const u_char* payload, int payload_size, int is_secured, int ve
     }
 }
 
+
+/**
+ * @brief this function processes the pop protocol
+ * @param payload
+ * @param payload_size
+ * @param verbosity
+ */
 void handle_pop(const u_char* payload, int payload_size, int verbosity) {
     switch (verbosity) {
         case HIGH:
-            printf("\t\t\tPOP3");
+            fprintf(stdout, "\t\t\tPOP3");
             if (payload_size > 0)
-                printPrintableAscii(payload, payload_size);
+                printHexaAscii(payload, payload_size);
             break;
+
         case MEDIUM:
-            printf("POP3");
+            fprintf(stdout, "POP3");
             break;
+
         case LOW:
             break;
+
         default:
             break;
 
@@ -89,20 +113,32 @@ void handle_pop(const u_char* payload, int payload_size, int verbosity) {
 
 }
 
+
+/**
+ * @brief this function processes the smtp protocol
+ * @param payload
+ * @param payload_size
+ * @param is_secured: 1 if it is the secure version of smtp, else 0
+ * @param verbosity
+ */
 void handle_smtp(const u_char* payload, int payload_size, int is_secured, int verbosity) {
     switch (verbosity) {
         case HIGH:
-                printf("\t\t\tSMTP");
+                fprintf(stdout, "\t\t\tSMTP");
                 if (is_secured)
-                    printf("S");
+                    fprintf(stdout, "S");
+
+                //only print the content if there is still data
                 if (payload_size > 0)
-                    printPrintableAscii(payload, payload_size);
+                    printHexaAscii(payload, payload_size);
             break;
+
         case MEDIUM:
-            printf("SMTP");
+            fprintf(stdout, "SMTP");
             if (is_secured)
-                printf("S");
+                fprintf(stdout, "S");
             break;
+
         case LOW:
             break;
         default:
@@ -110,41 +146,57 @@ void handle_smtp(const u_char* payload, int payload_size, int is_secured, int ve
     }
 }
 
+
+/**
+ * @brief this function processes the imap protocol
+ * @param payload
+ * @param payload_size
+ * @param verbosity
+ */
 void handle_imap(const u_char* payload, int payload_size, int verbosity) {
     switch (verbosity) {
         case HIGH:
-            printf("\t\t\tIMAP");
+            fprintf(stdout, "\t\t\tIMAP");
             if (payload_size > 0)
-                printPrintableAscii(payload, payload_size);
+                printHexaAscii(payload, payload_size);
             break;
+
         case MEDIUM:
-            printf("IMAP");
+            fprintf(stdout, "IMAP");
             break;
+
         case LOW:
             break;
+
         default:
             break;
 
     }
 }
 
+/**
+ * @brief this function processes the telnet protocol
+ * @param payload
+ * @param payload_size
+ * @param verbosity
+ */
 void handle_telnet(const u_char* payload, int payload_size, int verbosity){
     switch (verbosity) {
         case HIGH:
-                printf("\t\t\tTELNET\n");
+                fprintf(stdout, "\t\t\tTELNET\n");
 
                 //do not continue if there is no data
                 if (payload_size <= 0)
                     break;
 
                 if (is_command(payload)) {
-                    printf("\t\t\t\tCommands\n");
-                    printTelnetCommand(payload, payload_size);
+                    fprintf(stdout, "\t\t\t\tCommands\n");
+                    telnetCommand(payload, payload_size);
                 }
                 else {
-                    printf("\t\t\t\tData");
-                    printf(": ");
-                    printf("\n\t\t\t\t");
+                    fprintf(stdout, "\t\t\t\tData");
+                    fprintf(stdout, ": ");
+                    fprintf(stdout, "\n\t\t\t\t");
                     printAscii(payload, payload_size);
                 }
 
@@ -152,17 +204,17 @@ void handle_telnet(const u_char* payload, int payload_size, int verbosity){
 
         case MEDIUM:
             if (is_command(payload))
-                printf("TELNET Commands...");
+                fprintf(stdout, "TELNET Commands...");
             else
-                printf("TELNET Data...");
+                fprintf(stdout, "TELNET Data...");
             break;
 
         case LOW:
             if (is_command(payload))
-                printf("TELNET Commands...");
+                fprintf(stdout, "TELNET Commands...");
             else
-                printf("TELNET Data...");
-            printf("\n");
+                fprintf(stdout, "TELNET Data...");
+            fprintf(stdout, "\n");
             break;
 
         default:
@@ -170,114 +222,146 @@ void handle_telnet(const u_char* payload, int payload_size, int verbosity){
     }
 }
 
+
+/**
+ * @brief this function processes the ftp protocol
+ * @param payload
+ * @param payload_size
+ * @param is_request: 1 if it is a request (port 21), 0 if it is data (port 20)
+ * @param verbosity
+ */
 void handle_ftp(const u_char* payload, int payload_size, int is_request, int verbosity){
     switch (verbosity) {
         case HIGH:
-                printf("\t\t\tFTP");
+                fprintf(stdout, "\t\t\tFTP");
                 if (is_request) {
-                    printf(" (request)");
-                    if (payload_size > 0) {
-                        printf(": ");
+                    fprintf(stdout, " (request)");
+
+                    if (payload_size > 0) { //only if there is data
+                        fprintf(stdout, ": ");
                         printAscii(payload, payload_size);
                     }
 
                 }
 
                 else {
-                    printf(" (data)");
+                    fprintf(stdout, " (data)");
                     if (payload_size > 0)
-                        printPrintableAscii(payload, payload_size);
+                        printHexaAscii(payload, payload_size);
                 }
             break;
+
         case MEDIUM:
-            printf("FTP");
+            fprintf(stdout, "FTP");
             if (is_request)
-                printf(" (request)");
+                fprintf(stdout, " (request)");
             else
-                printf(" (data)");
+                fprintf(stdout, " (data)");
             break;
+
         case LOW:
             if (is_request) {
-                printf("Request");
-                printf(": ");
-                printAscii(payload, payload_size);
+                fprintf(stdout, "Request");
+                if (payload_size > 0) { //only if there is data
+                    fprintf(stdout, ": ");
+                    printAscii(payload, payload_size);
+                }
             }
             break;
+
         default:
             break;
     }
 
 }
 
+
+/**
+ * @brief this function processes the dns protocol
+ * @param packet
+ * @param verbosity
+ */
 void handle_dns(const u_char* packet, int verbosity) {
-    printf("\t\t\tDNS\n");
+    //TODO
+    fprintf(stdout, "\t\t\tDNS");
 }
 
+
+/**
+ * @brief this function proceses the bootp protocol
+ * @param packet
+ * @param verbosity
+ */
 void handle_bootp(const u_char* packet, int verbosity) {
     struct bootp* bootp_hdr = (struct bootp*) packet;
 
-    unsigned char op = bootp_hdr->bp_op;
-    unsigned char htype = bootp_hdr->bp_htype;
-    unsigned char hlen = bootp_hdr->bp_hlen;
+    unsigned char op = bootp_hdr->bp_op;            //
+    unsigned char htype = bootp_hdr->bp_htype;      //hardware address type
+    unsigned char hlen = bootp_hdr->bp_hlen;        //hardware address length
 	unsigned char hops = bootp_hdr->bp_hops;
-	unsigned int xid = bootp_hdr->bp_xid;
+	unsigned int xid = bootp_hdr->bp_xid;           //id of the transaction
 	unsigned short secs = bootp_hdr->bp_secs;
 	unsigned short flags = bootp_hdr->bp_flags;
-    u_int8_t *vendor = bootp_hdr->bp_vend;
-    const u_int8_t magic_cookie[] = VM_RFC1048;
+    u_int8_t *vendor = bootp_hdr->bp_vend;          //magic cookie
+    const u_int8_t magic_cookie[] = VM_RFC1048;     //magic cookie
 
     switch (verbosity) {
         case HIGH:
-            printf("\t\t\tBOOTP\n");
-            printf("\t\t\t\tMsg type: ");
-            if (op == 1)
-                printf("Request (%d) | ", op);
-            else if (op == 2)
-                printf("Reply (%d) | ", op);
+            fprintf(stdout, "\t\t\tBOOTP\n");
+
+            //type of the message
+            fprintf(stdout, "\t\t\t\tMsg type: ");
+            if (op == BOOTREQUEST)          //request
+                fprintf(stdout, "Request (%d) | ", op);
+            else if (op == BOOTREPLY)       //reply
+                fprintf(stdout, "Reply (%d) | ", op);
             else
-                printf("Unknown (%d) | ", op);
+                fprintf(stdout, "Unknown (%d) | ", op);
 
-            printf("Hdw type: ");
-            if (htype == 1)
-                printf("Ethernet (Ox%x) | ", htype);
+            //hardware address type
+            fprintf(stdout, "Hdw type: ");
+            if (htype == ETHERNET)          //ethernet
+                fprintf(stdout, "Ethernet (Ox%x) | ", htype);
             else
-                printf("Unknown (Ox%x) | ", htype);
+                fprintf(stdout, "Unknown (Ox%x) | ", htype);
 
-            printf("Hdw addr len: %d | ", hlen);
-            printf("Hops: %d | ", hops);
-            printf("Secs: %d\n", ntohs(secs));
-            printf("\t\t\t\tTransaction ID: 0x%x\n", ntohl(xid));
+            fprintf(stdout, "Hdw addr len: %d | ", hlen);    //hardware addres length
+            fprintf(stdout, "Hops: %d | ", hops);
+            fprintf(stdout, "Secs: %d\n", ntohs(secs));
+            fprintf(stdout, "\t\t\t\tTransaction ID: 0x%x\n", ntohl(xid));   //id of the transaction
 
-            printf("\t\t\t\tClient IP address: %s\n", inet_ntoa(bootp_hdr->bp_ciaddr));
-            printf("\t\t\t\tYour IP address: %s\n", inet_ntoa(bootp_hdr->bp_yiaddr));
-            printf("\t\t\t\tNext server IP address: %s\n", inet_ntoa(bootp_hdr->bp_siaddr));
-            printf("\t\t\t\tRelay agent IP address: %s\n", inet_ntoa(bootp_hdr->bp_giaddr));
-            printf("\t\t\t\tClient MAC address: ");
-            printf("%02x:%02x:%02x:%02x:%02x:%02x\n",
+            //addresse (ip/mac) from client etc..
+            fprintf(stdout, "\t\t\t\tClient IP address: %s\n", inet_ntoa(bootp_hdr->bp_ciaddr));
+            fprintf(stdout, "\t\t\t\tYour IP address: %s\n", inet_ntoa(bootp_hdr->bp_yiaddr));
+            fprintf(stdout, "\t\t\t\tNext server IP address: %s\n", inet_ntoa(bootp_hdr->bp_siaddr));
+            fprintf(stdout, "\t\t\t\tRelay agent IP address: %s\n", inet_ntoa(bootp_hdr->bp_giaddr));
+            fprintf(stdout, "\t\t\t\tClient MAC address: ");
+            fprintf(stdout, "%02x:%02x:%02x:%02x:%02x:%02x\n",
                    bootp_hdr->bp_chaddr[0], bootp_hdr->bp_chaddr[1], bootp_hdr->bp_chaddr[2],
                    bootp_hdr->bp_chaddr[3], bootp_hdr->bp_chaddr[4], bootp_hdr->bp_chaddr[5]);
 
-            printf("\t\t\t\tServer host name: ");
-            if (bootp_hdr->bp_sname[0] != 0b00000000)
-                printf("%s\n", bootp_hdr->bp_sname);
+            fprintf(stdout, "\t\t\t\tServer host name: ");
+            if (bootp_hdr->bp_sname[0] != 0b00000000)   //if the server host name is defined
+                fprintf(stdout, "%s\n", bootp_hdr->bp_sname);
             else
-                printf("not given\n");
+                fprintf(stdout, "not given\n");
 
-            printf("\t\t\t\tBoot file name: ");
-            if (bootp_hdr->bp_file[0] != 0b00000000)
-                printf("%s\n", bootp_hdr->bp_file);
+            fprintf(stdout, "\t\t\t\tBoot file name: ");
+            if (bootp_hdr->bp_file[0] != 0b00000000)    //if the boot file name is defined
+                fprintf(stdout, "%s\n", bootp_hdr->bp_file);
             else
-                printf("not given\n");
+                fprintf(stdout, "not given\n");
 
-                break;
+            break;
 
         case MEDIUM:
-            printf("BOOTP");
+            fprintf(stdout, "BOOTP");
             break;
 
         case LOW:
+            //if there is no magic cookie
             if(memcmp(vendor, magic_cookie, 4) != 0) {
-                printf("BOOTP\t");
+                fprintf(stdout, "BOOTP\t");
                 return;
             }
             break;
@@ -290,40 +374,46 @@ void handle_bootp(const u_char* packet, int verbosity) {
     if(memcmp(vendor, magic_cookie, 4) != 0)
         return;
 
-    packet = vendor + 4;
+    //shift the packet and go to dhcp
+    packet = (const u_char *) (vendor + 4);
     handle_dhcp(packet, verbosity, xid);
 }
 
+
+/**
+ * @brief this function processes the dhcp protocol
+ * @param packet
+ * @param verbosity
+ * @param xid: id of the transaction. Got from bootp function
+ */
 void handle_dhcp(const u_char* packet, int verbosity, unsigned int xid){
     int have_options = 1;
     unsigned char option;
     unsigned char length;
     const u_char *value;
-    int cpt;
 
     switch (verbosity) {
         case HIGH:
-            printf("\t\t\t\tDHCP \n");
+            fprintf(stdout, "\t\t\t\tDHCP \n");
             //get all options
             while (have_options) {
                 option = *packet++;
-                if (option == 0)
-                    printf("\t\t\t\t\tOption %d: (0) Padding\n", option);
+                if (option == TAG_PAD)    //no needs to read/shift for the length if option is padding
+                    fprintf(stdout, "\t\t\t\t\tOption %d: (0) Padding\n", option);
                 else {
                     length = *packet++;
                     value = packet;
 
-                    printf("\t\t\t\t\tOption %d: (%d) ", option, length);
+                    fprintf(stdout, "\t\t\t\t\tOption %d: (%d) ", option, length);
 
                     //print name and value
-                    have_options = displayOptionName(option);
-                    displayOptionValue(option, value, length);
+                    have_options = dhcpOptionName(option);
+                    dhcpOptionValue(option, value, length);
 
-                    printf("\n");
+                    fprintf(stdout, "\n");
 
                     //shift
-                    for (int i = 0; i < length; i++)
-                    *packet++;
+                    packet += length;
                 }
             }
             break;
@@ -332,49 +422,50 @@ void handle_dhcp(const u_char* packet, int verbosity, unsigned int xid){
             //get the message type if exists
             while (have_options) {
                 option = *packet++;
-                length = *packet++;
-                //quit if end of option
-                if (option == TAG_END)
-                    have_options = 0;
-                else {
-                    //if option is MESSAGE TYPE, display the type and quit
-                    if (option == TAG_DHCP_MSGTYPE) {
-                        displayOptionValue(option, packet, 0);
+                if (option != TAG_PAD) {
+                    length = *packet++;
+                    //quit if end of option
+                    if (option == TAG_END)
                         have_options = 0;
+                    else {
+                        //if option is MESSAGE TYPE, display the type and quit
+                        if (option == TAG_DHCP_MSGTYPE) {
+                            dhcpOptionValue(option, packet, 0);
+                            have_options = 0;
+                        }
                     }
+                    //shift the packet
+                    packet += length;
                 }
-                //shift the packet
-                for (int i = 0; i < length; i++)
-                    *packet++;
+
             }
             break;
 
         case LOW:
-            printf("DHCP\t");
+            fprintf(stdout, "DHCP\t");
             //get the message type if exists
             while (have_options) {
                 option = *packet++;
-                length = *packet++;
-                //quit if end of option
-                if (option == TAG_END)
-                    have_options = 0;
-                else {
-                    //if option is MESSAGE TYPE, display the type and quit
-                    if (option == TAG_DHCP_MSGTYPE) {
-                        printf("Message type");
-                        displayOptionValue(option, packet, 0);
-                        printf(" - ");
+                if (option != TAG_PAD) {
+                    length = *packet++;
+                    //quit if end of option
+                    if (option == TAG_END)
                         have_options = 0;
+                    else {
+                        //if option is MESSAGE TYPE, display the type and quit
+                        if (option == TAG_DHCP_MSGTYPE) {
+                            fprintf(stdout, "Message type");
+                            dhcpOptionValue(option, packet, 0);
+                            fprintf(stdout, " - ");
+                            have_options = 0;
+                        }
                     }
+                    //shift the packet
+                    packet += length;
                 }
-                //shift the packet
-                for (int i = 0; i < length; i++)
-                    *packet++;
             }
 
-            printf("Transaction id 0x%x", xid);
-
-            break;
+            fprintf(stdout, "Transaction id 0x%x", xid);
             break;
 
         default:

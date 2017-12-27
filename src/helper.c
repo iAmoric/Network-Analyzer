@@ -1,122 +1,157 @@
+
+/**
+ * Created by Lucas Pierrat.
+ */
+
 #include "helper.h"
 
-void printPrintableAscii(const u_char* payload, int payload_size){
+/**
+ * @brief this function print the payload in hexa and ascii format
+ * @param payload
+ * @param payload_size
+ */
+void printHexaAscii(const u_char* payload, int payload_size){
     int i;
     int j;
 
-    printf("\n" );
+    fprintf(stdout, "\n" );
     for(i = 0 ; i < payload_size ; i++) {
-        if (i != 0 && i%32 == 0) { //if one line of hex printing is complete...
+        if (i != 0 && i%32 == 0) { //if one line of hexa printing is complete
 
-            printf("\t\t");
+            fprintf(stdout, "\t\t");
             for(j = i-32; j < i; j++) {
                 if (isprint(payload[j]))
-                    printf("%c", payload[j]);
-                else printf(".");
+                    fprintf(stdout, "%c", payload[j]);
+                else fprintf(stdout, ".");
             }
-            printf("\n");
+            fprintf(stdout, "\n");
         }
 
-        if(i%32 == 0) printf("\t\t\t\t");
-            printf("%02X ", payload[i]);
+        if(i%32 == 0) fprintf(stdout, "\t\t\t\t");
+            fprintf(stdout, "%02X ", payload[i]);
 
         if (i == payload_size - 1) {  //print the last spaces
 
             for(j = 0; j < 31 - i%32; j++)
-                printf("   "); //extra spaces
+                fprintf(stdout, "   "); //extra spaces
 
-            printf("\t\t");
+            fprintf(stdout, "\t\t");
 
             for(j= i - i%32; j <= i; j++) {
                 if(isprint(payload[j]))
-                    printf("%c", payload[j]);
+                    fprintf(stdout, "%c", payload[j]);
                 else
-                    printf(".");
+                    fprintf(stdout, ".");
             }
 
-            printf( "\n" );
+            fprintf(stdout,  "\n" );
         }
     }
 }
 
-void printIPAddress(const u_char* payload, int payload_size) {
-    int cpt = payload_size / 4;
-    printf(": ");
-    for (int j = 0; j < cpt-1; j++){
-        for (int i = 0; i < payload_size-1; i++)
-            printf("%d.", *payload++);
-        printf("%d | ", *payload++);
-    }
-    for (int i = 0; i < payload_size-1; i++)
-        printf("%d.", *payload++);
-    printf("%d", *payload++);
-}
 
+/**
+ * @brief this function print the payload in ascii format
+ * @param payload
+ * @param payload_size
+ */
 void printAscii(const u_char* payload, int payload_size) {
     for (int i = 0; i < payload_size; i++)
-        printf("%c", *payload++);
+        fprintf(stdout, "%c", *payload++);
 }
 
-int displayOptionName(unsigned char option) {
+
+/**
+ * @brief this function print one or more ip address(es)
+ * @param payload
+ * @param payload_size
+ */
+void printIPAddress(const u_char* payload, int payload_size) {
+    int cpt = payload_size / 4;
+    fprintf(stdout, ": ");
+    for (int j = 0; j < cpt-1; j++){
+        for (int i = 0; i < payload_size-1; i++)
+            fprintf(stdout, "%d.", *payload++);
+        fprintf(stdout, "%d | ", *payload++);
+    }
+    for (int i = 0; i < payload_size-1; i++)
+        fprintf(stdout, "%d.", *payload++);
+    fprintf(stdout, "%d", *payload++);
+}
+
+
+/**
+ * @brief this function print the name of the dhcp option
+ * @param option
+ * @return end: 0 if the option read was the end, else 1
+ */
+int dhcpOptionName(unsigned char option) {
     int end = 1;
     switch (option) {
         case TAG_SUBNET_MASK:       //1
-            printf("Subnet mask");
+            fprintf(stdout, "Subnet mask");
             break;
         case TAG_TIME_OFFSET:       //2
-            printf("Time offset");
+            fprintf(stdout, "Time offset");
             break;
         case TAG_GATEWAY:           //3
-            printf("Gateway");
+            fprintf(stdout, "Gateway");
             break;
         case TAG_DOMAIN_SERVER:     //6
-            printf("Domain Name Server");
+            fprintf(stdout, "Domain Name Server");
             break;
         case TAG_HOSTNAME:          //12
-            printf("Host name");
+            fprintf(stdout, "Host name");
             break;
         case TAG_DOMAINNAME:        //15
-            printf("Domain name");
+            fprintf(stdout, "Domain name");
             break;
         case TAG_BROAD_ADDR:        //28
-            printf("Broadcast address");
+            fprintf(stdout, "Broadcast address");
             break;
         case TAG_NETBIOS_NS:        //44
-            printf("Netbios over name server");
+            fprintf(stdout, "Netbios over name server");
             break;
         case TAG_NETBIOS_SCOPE:     //47
-            printf("Netbios over scope");
+            fprintf(stdout, "Netbios over scope");
             break;
         case TAG_REQ_ADDR:          //50
-            printf("Requested IP address");
+            fprintf(stdout, "Requested IP address");
             break;
         case TAG_LEASETIME:         //51
-            printf("Lease time");
+            fprintf(stdout, "Lease time");
             break;
         case TAG_DHCP_MSGTYPE:      //53
-            printf("DHCP message type");
+            fprintf(stdout, "DHCP message type");
             break;
         case TAG_SERVERID:          //54
-            printf("Server identifier");
+            fprintf(stdout, "Server identifier");
             break;
         case TAG_PARAM_REQ:         //54
-            printf("Parameter request list");
+            fprintf(stdout, "Parameter request list");
             break;
         case TAG_CLASSID:           //60
-            printf("Client identifier");
+            fprintf(stdout, "Client identifier");
             break;
         case TAG_END:               //255
-            printf("End");
+            fprintf(stdout, "End");
             end = 0;
             break;
         default:
-            printf("Unknown");
+            fprintf(stdout, "Unknown");
             break;
     }
     return end;
 }
 
-void displayOptionValue(unsigned char option, const u_char* payload, int payload_size){
+
+/**
+ * @brief this function print the content of the dhcp option. Can be ip address, ascii text or other
+ * @param option
+ * @param payload
+ * @param payload_size
+ */
+void dhcpOptionValue(unsigned char option, const u_char* payload, int payload_size){
     //print an ip address if the value is an option address
     if (option == TAG_SUBNET_MASK || option == TAG_GATEWAY || option == TAG_DOMAIN_SERVER ||
         option == TAG_BROAD_ADDR || option == TAG_NETBIOS_NS || option == TAG_REQ_ADDR ||
@@ -124,49 +159,49 @@ void displayOptionValue(unsigned char option, const u_char* payload, int payload
         printIPAddress(payload, payload_size);
     }
 
-    //print the ascii charactere if the value is text
+    //print the ascii characters if the value is text
     if (option == TAG_HOSTNAME || option == TAG_DOMAINNAME) {
-        printf(": ");
-        printf("\n\t\t\t\t");
+        fprintf(stdout, ": ");
+        fprintf(stdout, "\n\t\t\t\t");
         printAscii(payload, payload_size);
     }
 
     // for all options of the request list, print the option name
     if (option == TAG_PARAM_REQ) {
-        printf(": ");
+        fprintf(stdout, ": ");
         for (int i = 0; i < payload_size; i++){
-            printf("\n\t\t\t\t\t\t");
+            fprintf(stdout, "\n\t\t\t\t\t\t");
             option = *payload++;
-            printf("Option %d: ", option);
-            displayOptionName(option);
+            fprintf(stdout, "Option %d: ", option);
+            dhcpOptionName(option);
         }
     }
 
     // print the dhcp message type if required
     if (option == TAG_DHCP_MSGTYPE) {
-        printf(": ");
+        fprintf(stdout, ": ");
         option = *payload;
         switch (option) {
             case DHCPDISCOVER:
-                printf("Discover");
+                fprintf(stdout, "Discover");
                 break;
             case DHCPOFFER:
-                printf("Offer");
+                fprintf(stdout, "Offer");
                 break;
             case DHCPREQUEST:
-                printf("Request");
+                fprintf(stdout, "Request");
                 break;
             case DHCPDECLINE:
-                printf("Decline");
+                fprintf(stdout, "Decline");
                 break;
             case DHCPACK:
-                printf("Ack");
+                fprintf(stdout, "Ack");
                 break;
             case DHCPNAK:
-                printf("N-Ack");
+                fprintf(stdout, "N-Ack");
                 break;
             case DHCPRELEASE:
-                printf("Release");
+                fprintf(stdout, "Release");
                 break;
             default:
                 break;
@@ -174,7 +209,12 @@ void displayOptionValue(unsigned char option, const u_char* payload, int payload
     }
 }
 
-//return 1 if the data start with GET, POST or HTTP, else 0
+
+/**
+ * @brief this function test if the content of the http payload is an header
+ * @param payload
+ * @return 1 if the content start by 'GET', 'POST' or 'HTTP', else 0
+ */
 int has_header(const u_char* payload) {
     if (payload[0] == 'G' && payload[1] == 'E' && payload[2] == 'T')
         return 1;
@@ -189,15 +229,18 @@ int has_header(const u_char* payload) {
 }
 
 
-//print the header of the HTTP payload
-//return the size read
+/**
+ * @brief this function print the http header
+ * @param payload
+ * @param verbosity
+ * @return readSize: the size of the header read
+ */
 int printHeader(const u_char* payload, int verbosity) {
-    int end = 0;
     int i = 0;
     int readSize = 0;
 
     if (verbosity == HIGH)
-        printf("\t\t\t\t");
+        fprintf(stdout, "\t\t\t\t");
 
     while (1) {
         if (payload[i] == 0x0d) {
@@ -210,11 +253,11 @@ int printHeader(const u_char* payload, int verbosity) {
                     readSize+=4;
                     break;
                 }
-                printf("\n\t\t\t\t");
+                fprintf(stdout, "\n\t\t\t\t");
             }
         }
-        if (isprint(payload[i]))
-            printf("%c", payload[i]);
+        if (isprint(payload[i]))    //only print if it is printable ascii characters
+            fprintf(stdout, "%c", payload[i]);
         i++;
         readSize++;
     }
@@ -222,50 +265,65 @@ int printHeader(const u_char* payload, int verbosity) {
 }
 
 
-
-//return 1 if it is command, 0 if it is data
+/**
+ * @brief this function test if the telnet payload is a command (start by 0xff)
+ * @param payload
+ * @return 1 if it is a command (start by 0xff), else 0
+ */
 int is_command(const u_char* payload){
-    if (payload[0] == 0xFF)
+    if (payload[0] == 0xff)
         return 1;
     return 0;
 }
 
-void printTelnetOptions(int option){
-    printf("%02d: ", option);
+
+/**
+ * @brief this function print the name of the telnet option
+ * @param option
+ */
+void telnetOptions(int option){
+    fprintf(stdout, "%02d: ", option);
     switch (option) {
         case TELOPT_BINARY:     //00
-            printf("Binary");
+            fprintf(stdout, "Binary");
             break;
         case TELOPT_ECHO:       //01
-            printf("Echo");
+            fprintf(stdout, "Echo");
             break;
         case TELOPT_SGA:        //03
-            printf("Supress Go Ahead");
+            fprintf(stdout, "Supress Go Ahead");
             break;
         case TELOPT_TTYPE:      //24
-            printf("Terminal Type");
+            fprintf(stdout, "Terminal Type");
             break;
         case TELOPT_NAWS:       //31
-            printf("Window Size");
+            fprintf(stdout, "Window Size");
             break;
         case TELOPT_TSPEED:     //32
-            printf("Terminal Speed");
+            fprintf(stdout, "Terminal Speed");
             break;
         case TELOPT_LINEMODE:   //34
-            printf("Linemode");
+            fprintf(stdout, "Linemode");
             break;
         case TELOPT_OLD_ENVIRON:   //36
-            printf("Old Environment Variables");
+            fprintf(stdout, "Old Environment Variables");
             break;
         case TELOPT_NEW_ENVIRON:   //39
-            printf("New Environment Variables");
+            fprintf(stdout, "New Environment Variables");
             break;
         default:
-            printf("Unknown");
+            fprintf(stdout, "Unknown");
             break;
     }
 }
-void printTelnetCommand(const u_char *payload, int payload_size) {
+
+
+/**
+ * @brief this function print the name of the telnet command, and option of the command
+ * @param payload
+ * @param payload_size
+ */
+void telnetCommand(const u_char *payload, int payload_size) {
     int command, option;
     int i, next;
     int h, w;
@@ -274,64 +332,65 @@ void printTelnetCommand(const u_char *payload, int payload_size) {
     while (payload < end) {
         *payload++; //shift the first 0xff
         command = *payload++;   //read the command
-        printf("\t\t\t\tCommand %d: ", command);
+        fprintf(stdout, "\t\t\t\tCommand %d: ", command);
         option = *payload++;    //read options of the command
         switch (command) {
             case DO:        //253
-                printf("DO - ");
-                printTelnetOptions(option);
+                fprintf(stdout, "DO - ");
+                telnetOptions(option);
                 break;
 
             case DONT:      //254
-                printf("DONT - ");
-                printTelnetOptions(option);
+                fprintf(stdout, "DONT - ");
+                telnetOptions(option);
                 break;
 
             case WONT:      //252
-                printf("WONT - ");
-                printTelnetOptions(option);
+                fprintf(stdout, "WONT - ");
+                telnetOptions(option);
                 break;
 
             case WILL:      //251
-                printf("WILL - ");
-                printTelnetOptions(option);
+                fprintf(stdout, "WILL - ");
+                telnetOptions(option);
                 break;
 
             case SB:        //250
-                printf("NEGOCIATION about ");
-                    printTelnetOptions(option);
+                fprintf(stdout, "NEGOCIATION about ");
+                    telnetOptions(option);
                     switch (option) {
                         case TELOPT_TSPEED:
-                            printf(": %d", *payload++);
+                            fprintf(stdout, ": %d", *payload++);
                             break;
+
                         case TELOPT_NAWS:
                             w = (payload[0] << 8) + payload[1];
                             h = (payload[2] << 8) + payload[3];
-                            printf(": %d x %d", w, h);
+                            fprintf(stdout, ": %d x %d", w, h);
                             payload += 4;
                             break;
+
                         default:
-                            printf(": Unknown");
+                            fprintf(stdout, ": Unknown");
+                            //shift for the size of the option
                             next = payload[0];
                             i = 0;
                             while (next != 0xff)
                                 next = payload[i++];
                             payload += (i-1);
                             break;
-
-
                     }
                 break;
 
             case SE:        //240
-                printf("END SUB NEGOCIATION");
+                fprintf(stdout, "END SUB NEGOCIATION");
                 break;
 
             default:
-                printf("Unknown");
+                fprintf(stdout, "Unknown");
                 break;
         }
 
-        printf("\n");
+        fprintf(stdout, "\n");
     }
 }

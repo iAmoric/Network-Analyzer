@@ -1,3 +1,8 @@
+
+/**
+ * Created by Lucas Pierrat.
+ */
+
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -14,6 +19,10 @@
 #define ARPOP_REQUEST   1
 #define ARPOP_REPLY     2
 
+#define ETHERNET        1
+#define IPV4            2048
+
+//use this structure for arp because there are some inaccessible fields in the structure in <net/if_arp.h>
 struct arp_hdr {
     u_int16_t htype;    /* Hardware Type           */
     u_int16_t ptype;    /* Protocol Type           */
@@ -26,5 +35,16 @@ struct arp_hdr {
     u_char tpa[4];      /* Target IP address       */
 };
 
+/**
+ * @brief this function processes the ip protocol
+ * @param packet
+ * @param verbosity
+ */
 void handle_ip(const u_char* packet, int verbosity);
+
+/**
+ * @brief this function processes the arp protocol
+ * @param packet
+ * @param verbosity
+ */
 void handle_arp(const u_char* packet, int verbosity);

@@ -4,6 +4,10 @@
     M1 CMI ISR
 **/
 
+/**
+ * Created by Lucas Pierrat.
+ */
+
 //gcc -o main main.c -lpcap
 //tcpdump -i wlp4s0 -w file
 
@@ -12,38 +16,44 @@
 #include <pcap.h>
 #include <getopt.h>
 
-#include "verbosity.h"
 #include "datalinkLayer.h"
 
 //buffer for error
 char errbuf[PCAP_ERRBUF_SIZE];
 
 int verbosity;
+
+
 /**
-callback function
-*/
+ * @brief this function is the callback function for pcap_loop. Launch the analysis of the packet
+ * @param args
+ * @param header
+ * @param packet
+ */
 void handle_packet(u_char* args, const struct pcap_pkthdr* header, const u_char* packet){
     static int nbPacket = 1;
-    fprintf(stdout, "\n--- [PACKET #%d] ------------------------------------------------------------ \n", nbPacket);
+    fprintf(stdout, "\n--- [PACKET #%d - %d bytes] ----------------------------------------------- \n", nbPacket, header->len);
     handle_ethernet(packet, verbosity);
-    printf("\n");
+    fprintf(stdout, "\n");
     nbPacket++;
 }
 
+
 /**
-print help for usage
-*/
+ * @brief this function indicates how to use the programm
+ */
 void print_help(){
     fprintf(stdout, "How to use :\n");
     fprintf(stdout, "-i <interface>|-o <capture_file> [-f filter] -v <verbosity>\n");
     fprintf(stdout, "verbosity between 1 (low) and 3 (high)\n");
-    return;
 }
 
 
 /**
-open file for offline capture
-*/
+ * @brief this function open the file and create the interface for the offline capture
+ * @param file
+ * @return interface
+ */
 pcap_t* capture_offine(char* file) {
     pcap_t* interface;
     if((interface = pcap_open_offline(file, errbuf)) == NULL) {
@@ -53,13 +63,17 @@ pcap_t* capture_offine(char* file) {
     return interface;
 }
 
+
 /**
-open interface for live capture
-if specified interface failed to be opened, try with auto select another interface
-*/
+ * @brief this function opens the interface for the live capture.
+ *        It tries to auto select another interface if the selected interface failed to open
+ * @param dev
+ * @return interface
+ */
 pcap_t* capture_live(char* dev) {
     pcap_t* interface;
 
+    //open the interface
     interface = pcap_open_live(dev, 1500, 1, 100, errbuf);
 
     if (interface == NULL) {
@@ -67,6 +81,7 @@ pcap_t* capture_live(char* dev) {
         fprintf(stderr, "Unable to select interface %s for live capture : %s\n", dev,errbuf);
         fprintf(stderr, "Retrying with auto select...\n");
 
+        //lookup for another interface
         dev = pcap_lookupdev(errbuf);
 
         if (dev == NULL) {
@@ -74,6 +89,7 @@ pcap_t* capture_live(char* dev) {
             exit(EXIT_FAILURE);
         }
 
+        //open the interface
         interface = pcap_open_live(dev, 1500, 1, 100, errbuf);
 
         if (interface == NULL) {
@@ -89,26 +105,15 @@ pcap_t* capture_live(char* dev) {
 
 int main(int argc, char **argv) {
 
-    /**
-    TODO :
-     - traiter les options
-        - pouvoir choisir entre capture live / offline --> OK
-        - si live -> ouvrir le descripteur de capture live --> OK
-        - si offline -> ouvrir le fichier de capture --> OK
-     - Gérer les filtres (compile + set) -> OK
-     - Gérer verbosite
-     */
-
-    pcap_t* interface;
-    //int verbosity = 1;
+    pcap_t* interface = NULL;
     int option;
     int interface_selected = 0;
     int filter_selected = 0;
-    int v;
-    char* filter;
+    char* filter = NULL;
     struct bpf_program fp;
-    bpf_u_int32 mask;
+    bpf_u_int32 mask = NULL;
 
+    //get the options of the program
     while((option = getopt(argc, argv, "hi:o:f:v:")) != -1) {
         switch (option) {
             //help
@@ -145,7 +150,6 @@ int main(int argc, char **argv) {
 
             //verbosity
             case 'v':
-                //TODO gérer verbosity
                 verbosity = atoi(optarg);
 
                 if (verbosity < 1 || verbosity > 3) {
@@ -162,8 +166,10 @@ int main(int argc, char **argv) {
         }
     }
 
+    //guaranteed that an interface has been selected
     if (interface_selected == 0){
         print_help();
+        return 0;
     }
 
     //set filter
@@ -183,15 +189,15 @@ int main(int argc, char **argv) {
     int ret;
     ret = pcap_loop(interface, -1, handle_packet, NULL);
 
-    if (ret != 0) {
-        printf("Error pcap_loop\n");
-    }
+    if (ret != 0)
+        fprintf(stdout, "Error pcap_loop\n");
 
-    printf("\n");
+    fprintf(stdout, "\n");
 
     //exit proprely
     if (filter_selected != 0)
         pcap_freecode(&fp);
+
     pcap_close(interface);
 
     return 0;

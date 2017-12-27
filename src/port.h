@@ -1,5 +1,12 @@
+
+/**
+ * Created by Lucas Pierrat.
+ */
+
 #ifndef _PORT_H_
 #define _PORT_H_
+
+//this file contains all port for the different protocols
 
 #define HTTP            80
 #define HTTPS           443

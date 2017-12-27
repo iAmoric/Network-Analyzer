@@ -1,4 +1,4 @@
-/*
+/**
 from https://opensource.apple.com/source/Libc/Libc-339/include/arpa/telnet.h
 */
 

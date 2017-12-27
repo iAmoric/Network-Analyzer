@@ -1,4 +1,4 @@
-/* from
+/** from
  *    https://ftp.netbsd.org/pub/NetBSD/NetBSD-current/src/sys/lib/libsa/bootp.h
  */
 
@@ -60,6 +60,7 @@ struct bootp {
 #define BOOTREPLY       2
 #define BOOTREQUEST     1
 
+#define ETHERNET		1
 
 /*
  * Vendor magic cookie (v_magic) for CMU

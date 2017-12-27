@@ -1,8 +1,16 @@
-#include "networkLayer.h"
 
 /**
-        IP
-*/
+ * Created by Lucas Pierrat.
+ */
+
+#include "networkLayer.h"
+
+
+/**
+ * @brief this function processes the ip protocol
+ * @param packet
+ * @param verbosity
+ */
 void handle_ip(const u_char* packet, int verbosity) {
     struct ip* ip_hdr;
     ip_hdr = (struct ip*)packet;
@@ -12,43 +20,46 @@ void handle_ip(const u_char* packet, int verbosity) {
 
     switch (verbosity) {
         case HIGH:
-            printf("\tIPv4");
-            printf("\n\t\thl: %d | ", ip_hdr->ip_hl);
-            printf("tos: %d | ", ip_hdr->ip_tos);
-            printf("len: %d | ", ntohs(ip_hdr->ip_len));
-            printf("id: %d | ", ntohs(ip_hdr->ip_id));
+            fprintf(stdout, "\tIPv4");
+            fprintf(stdout, "\n\t\thl: %d | ", ip_hdr->ip_hl);       //header length
+            fprintf(stdout, "tos: %d | ", ip_hdr->ip_tos);           //type of service
+            fprintf(stdout, "len: %d | ", ntohs(ip_hdr->ip_len));    //total packet length
+            fprintf(stdout, "id: %d | ", ntohs(ip_hdr->ip_id));      //id of the packet
             //TODO check it
-            printf("off: %d | ", ip_hdr->ip_off);
-            printf("ttl: %d | ", ip_hdr->ip_ttl);
-            printf("sum: 0x%x\n", ntohs(ip_hdr->ip_sum));
-            printf("\t\t@Src: %s\n", inet_ntoa(ip_hdr->ip_src));
-            printf("\t\t@Dest: %s\n", inet_ntoa(ip_hdr->ip_dst));
+            fprintf(stdout, "off: %d | ", ip_hdr->ip_off);           //offset
+            fprintf(stdout, "ttl: %d | ", ip_hdr->ip_ttl);           //time to live
+            fprintf(stdout, "sum: 0x%x\n", ntohs(ip_hdr->ip_sum));   //checksum
+            fprintf(stdout, "\t\t@Src: %s\n", inet_ntoa(ip_hdr->ip_src));
+            fprintf(stdout, "\t\t@Dest: %s\n", inet_ntoa(ip_hdr->ip_dst));
             break;
 
         case MEDIUM:
-            printf("IPv4");
-            printf(", Src: %s, ", inet_ntoa(ip_hdr->ip_src));
-            printf("Dst: %s\n", inet_ntoa(ip_hdr->ip_dst));
+            fprintf(stdout, "IPv4");
+            fprintf(stdout, ", Src: %s, ", inet_ntoa(ip_hdr->ip_src));
+            fprintf(stdout, "Dst: %s\n", inet_ntoa(ip_hdr->ip_dst));
             break;
 
         case LOW:
-            printf("Src: %s\t", inet_ntoa(ip_hdr->ip_src));
-            printf("Dst: %s\t", inet_ntoa(ip_hdr->ip_dst));
+            fprintf(stdout, "Src: %s\t", inet_ntoa(ip_hdr->ip_src));
+            fprintf(stdout, "Dst: %s\t", inet_ntoa(ip_hdr->ip_dst));
+            break;
+
+        default:
             break;
     }
 
-
+    //shift
     packet += ip_hdr->ip_hl * 4;
 
     switch (protocol) {
-        case 0x06:
+        case 0x06:      //tcp
             handle_tcp(packet, payload_size, verbosity);
         break;
-        case 0x11:
+        case 0x11:      //udp
             handle_udp(packet, payload_size, verbosity);
         break;
         default:
-            printf("\t\tUnsupported protocol : 0x%x\n", protocol);
+            fprintf(stdout, "\t\tUnsupported protocol : 0x%x\n", protocol);
         break;
     }
 
@@ -56,138 +67,144 @@ void handle_ip(const u_char* packet, int verbosity) {
 
 
 /**
-        ARP
-*/
+ * @brief this function processes the arp protocol
+ * @param packet
+ * @param verbosity
+ */
 void handle_arp(const u_char* packet, int verbosity) {
 	struct arp_hdr* arp_hdr;
 	arp_hdr = (struct arp_hdr*) packet;
 
-	int hard_addr = ntohs(arp_hdr->htype);
-	int hard_pro = ntohs(arp_hdr->ptype);
+	int hard_addr = ntohs((uint16_t) arp_hdr->htype);      //hardware address type
+	int hard_pro = ntohs((uint16_t) arp_hdr->ptype);       //protocol type
+    u_int16_t op = ntohs((uint16_t) arp_hdr->oper);        //opcode
     int i;
-    u_int16_t op = ntohs(arp_hdr->oper);    //opcode
 
     switch (verbosity) {
         case HIGH:
-            printf("\tARP");
+            fprintf(stdout, "\tARP");
             //hardware type
-        	printf("\n\t\tHardware type : ");
-        	if (hard_addr == 1) {
-        		printf("Ethernet ");
+        	fprintf(stdout, "\n\t\tHardware type : ");
+        	if (hard_addr == ETHERNET) {
+        		fprintf(stdout, "Ethernet ");
         	}
         	else {
-        		printf("Unknown ");
+        		fprintf(stdout, "Unknown ");
         	}
 
             //hardware length
-        	printf("(%d) | ", arp_hdr->hlen);
+        	fprintf(stdout, "(%d) | ", arp_hdr->hlen);
 
         	//hardware protocol
-        	printf("Hardware protocol : ");
-        	if (hard_pro == 2048) {
-        		printf("IPv4 ");
+        	fprintf(stdout, "Hardware protocol : ");
+        	if (hard_pro == IPV4) {
+        		fprintf(stdout, "IPv4 ");
         	}
         	else {
-        		printf("Unknown ");
+        		fprintf(stdout, "Unknown ");
         	}
 
             //protocol length
-        	printf("(%d) | ", arp_hdr->plen);
+        	fprintf(stdout, "(%d) | ", arp_hdr->plen);
 
         	//opcode
         	switch (op) {
         		case ARPOP_REQUEST:
-        			printf("Request\n");
+        			fprintf(stdout, "Request\n");
         		break;
         		case ARPOP_REPLY:
-        			printf("Reply\n");
+        			fprintf(stdout, "Reply\n");
         		break;
         		default:
-        			printf("unknown opcode : %d\n", op);
+        			fprintf(stdout, "unknown opcode : %d\n", op);
         		break;
         	}
 
-            if (hard_addr == 1 && hard_pro == 2048) {
+            //only continue if it is ethernet and ipv4
+            if (hard_addr == ETHERNET && hard_pro == IPV4) {
                 //sender
-            	printf("\t\tSender Mac : ");
+            	fprintf(stdout, "\t\tSender Mac : ");
                 for (i = 0; i < 5; i++)
-                    printf("%02x:", arp_hdr->sha[i]);
-                printf("%02x", arp_hdr->sha[i]);
-            	printf("\n");
+                    fprintf(stdout, "%02x:", arp_hdr->sha[i]);
+                fprintf(stdout, "%02x", arp_hdr->sha[i]);
+            	fprintf(stdout, "\n");
 
-                printf("\t\tSender IP : ");
+                fprintf(stdout, "\t\tSender IP : ");
                 for (i = 0; i < 3; i++)
-                    printf("%d.", arp_hdr->spa[i]);
-                printf("%d", arp_hdr->spa[i]);
-            	printf("\n");
+                    fprintf(stdout, "%d.", arp_hdr->spa[i]);
+                fprintf(stdout, "%d", arp_hdr->spa[i]);
+            	fprintf(stdout, "\n");
 
                 //target
-                printf("\t\tTarget Mac : ");
+                fprintf(stdout, "\t\tTarget Mac : ");
                 for (i = 0; i < 5; i++)
-                    printf("%02x:", arp_hdr->tha[i]);
-                printf("%02x", arp_hdr->tha[i]);
-            	printf("\n");
+                    fprintf(stdout, "%02x:", arp_hdr->tha[i]);
+                fprintf(stdout, "%02x", arp_hdr->tha[i]);
+            	fprintf(stdout, "\n");
 
-                printf("\t\tTarget IP : ");
+                fprintf(stdout, "\t\tTarget IP : ");
                 for (i = 0; i < 3; i++)
-                    printf("%d.", arp_hdr->tpa[i]);
-                printf("%d", arp_hdr->tpa[i]);
-            	printf("\n");
+                    fprintf(stdout, "%d.", arp_hdr->tpa[i]);
+                fprintf(stdout, "%d", arp_hdr->tpa[i]);
+            	fprintf(stdout, "\n");
             }
             break;
 
         case MEDIUM:
-            printf("ARP");
+            fprintf(stdout, "ARP");
             switch (op) {
         		case ARPOP_REQUEST:
-        			printf(" (Request)\n");
+        			fprintf(stdout, " (Request)\n");
         		break;
         		case ARPOP_REPLY:
-        			printf(" (Reply)\n");
+        			fprintf(stdout, " (Reply)\n");
         		break;
         		default:
-        			printf(" (unknown opcode : %d)\n", op);
+        			fprintf(stdout, " (unknown opcode : %d)\n", op);
         		break;
         	}
             break;
 
         case LOW:
-            printf("Src: ");
+            fprintf(stdout, "Src: ");
             for (i = 0; i < 5; i++)
-                printf("%02x:", arp_hdr->sha[i]);
-            printf("%02x", arp_hdr->sha[i]);
-            printf("\t");
+                fprintf(stdout, "%02x:", arp_hdr->sha[i]);
+            fprintf(stdout, "%02x", arp_hdr->sha[i]);
+            fprintf(stdout, "\t");
 
-            printf("Dst: ");
+            fprintf(stdout, "Dst: ");
             for (i = 0; i < 5; i++)
-                printf("%02x:", arp_hdr->tha[i]);
-            printf("%02x", arp_hdr->tha[i]);
-            printf("\t");
+                fprintf(stdout, "%02x:", arp_hdr->tha[i]);
+            fprintf(stdout, "%02x", arp_hdr->tha[i]);
+            fprintf(stdout, "\t");
 
-            printf("Protocol: ARP\t");
+            fprintf(stdout, "Protocol: ARP\t");
 
             if (hard_addr == 1 && hard_pro == 2048) {
                 if (op == ARPOP_REQUEST) {
-                    printf("Who has ");
+                    fprintf(stdout, "Who has ");
                     for (i = 0; i < 3; i++)
-                        printf("%d.", arp_hdr->tpa[i]);
-                    printf("%d", arp_hdr->tpa[i]);
-                    printf("? Tell ");
+                        fprintf(stdout, "%d.", arp_hdr->tpa[i]);
+                    fprintf(stdout, "%d", arp_hdr->tpa[i]);
+                    fprintf(stdout, "? Tell ");
                     for (i = 0; i < 3; i++)
-                        printf("%d.", arp_hdr->spa[i]);
-                    printf("%d", arp_hdr->spa[i]);
+                        fprintf(stdout, "%d.", arp_hdr->spa[i]);
+                    fprintf(stdout, "%d", arp_hdr->spa[i]);
                 }
 
                 else if (op == ARPOP_REPLY) {
                     for (i = 0; i < 3; i++)
-                        printf("%d.", arp_hdr->spa[i]);
-                    printf("%d", arp_hdr->spa[i]);
-                    printf(" is at ");
+                        fprintf(stdout, "%d.", arp_hdr->spa[i]);
+                    fprintf(stdout, "%d", arp_hdr->spa[i]);
+                    fprintf(stdout, " is at ");
                     for (i = 0; i < 5; i++)
-                        printf("%02x:", arp_hdr->sha[i]);
-                    printf("%02x", arp_hdr->sha[i]);
+                        fprintf(stdout, "%02x:", arp_hdr->sha[i]);
+                    fprintf(stdout, "%02x", arp_hdr->sha[i]);
                 }
             }
+            break;
+
+        default:
             break;
     }
 }
