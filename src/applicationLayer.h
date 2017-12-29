@@ -14,6 +14,7 @@
 #include "verbosity.h"
 #include "helper.h"
 #include "telnet.h"
+#include "dns.h"
 
 /**
  * @brief this function processes the http protocol

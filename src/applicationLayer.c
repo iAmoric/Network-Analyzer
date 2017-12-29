@@ -282,8 +282,66 @@ void handle_ftp(const u_char* payload, int payload_size, int is_request, int ver
  * @param verbosity
  */
 void handle_dns(const u_char* packet, int verbosity) {
-    //TODO
-    fprintf(stdout, "\t\t\tDNS");
+    struct  dns_header* dns_hdr = (struct dns_header*) packet;
+    fprintf(stdout, "\t\t\tDNS\n");
+    fprintf(stdout, "\t\t\t\tTransaction ID: 0x%x\n", ntohs((uint16_t) dns_hdr->tid));
+
+    //query/response
+    if (dns_hdr->qr & 1)
+        fprintf(stdout, "\t\t\t\tResponse: ");
+    else
+        fprintf(stdout, "\t\t\t\tQuery: ");
+
+    switch (dns_hdr->opcode){
+        case 0:
+            fprintf(stdout, "standard query");
+            break;
+        case 1:
+            fprintf(stdout, "inverse query");
+            break;
+        case 2:
+            fprintf(stdout, "server status request");
+            break;
+        case 4:
+            fprintf(stdout, "notify");
+            break;
+        case 5:
+            fprintf(stdout, "update");
+            break;
+        default:
+            fprintf(stdout, "unknow opcode (%d)", dns_hdr->opcode);
+            break;
+    }
+    fprintf(stdout, "\n\t\t\t\t");
+
+    //authoritative answer
+    if (dns_hdr->aa & 1)
+        fprintf(stdout, "Answer: authoritative | ");
+    else
+        fprintf(stdout, "Answer: not authoritative | ");
+
+    //truncated
+    if (dns_hdr->tc & 1)
+        fprintf(stdout, "Message: truncated | ");
+    else
+        fprintf(stdout, "Answer: not truncated | ");
+
+    //recursion desired
+    if (dns_hdr->rd & 1)
+        fprintf(stdout, "Recursion: desired | ");
+    else
+        fprintf(stdout, "Answer: not desired | ");
+
+    //recusion available
+    if (dns_hdr->ra & 1)
+        fprintf(stdout, "Recursion: available\n");
+    else
+        fprintf(stdout, "Recursion: not available\n");
+
+    fprintf(stdout, "\t\t\t\tQuestions: %d\n", ntohs((uint16_t) dns_hdr->qdcount));
+    fprintf(stdout, "\t\t\t\tAnswer RRs: %d\n", ntohs((uint16_t) dns_hdr->ancount));
+    fprintf(stdout, "\t\t\t\tAuthority RRs: %d\n", ntohs((uint16_t) dns_hdr->nscount));
+    fprintf(stdout, "\t\t\t\tAdditional RRs: %d\n", ntohs((uint16_t) dns_hdr->arcount));
 }
 
 
