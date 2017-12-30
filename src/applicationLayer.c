@@ -345,10 +345,10 @@ void handle_dns(const u_char* payload, int verbosity) {
         fprintf(stdout, "Recursion: not available\n");
 
     //total questions/answers etc
-    fprintf(stdout, "\t\t\t\tQuestions: %d\n", questions);
-    fprintf(stdout, "\t\t\t\tAnswer RRs: %d\n", answers);
-    fprintf(stdout, "\t\t\t\tAuthority RRs: %d\n", authority);
-    fprintf(stdout, "\t\t\t\tAdditional RRs: %d\n", additional);
+    fprintf(stdout, "\t\t\t\tQuestions: %d ", questions);
+    fprintf(stdout, "| Answer RRs: %d ", answers);
+    fprintf(stdout, "| Authority RRs: %d", authority);
+    fprintf(stdout, "| Additional RRs: %d\n", additional);
 
     //shift packet
     payload += sizeof(struct dns_header);
