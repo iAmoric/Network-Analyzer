@@ -1,23 +1,10 @@
-
 /**
- * Created by Lucas Pierrat.
+ * from
+ *    https://opensource.apple.com/source/ChatServer/ChatServer-260/jabberd2/resolver/dns.c
  */
 
 #ifndef NETWORK_ANALYZER_DNS_H
 #define NETWORK_ANALYZER_DNS_H
-
-#include <netinet/in.h>
-/*
-struct dns_header {
-    uint16_t tid;
-    uint16_t codes;
-    uint16_t tquestions;
-    uint16_t answerRRs;
-    uint16_t authorityRRs;
-    uint16_t additionalRRs;
-
-};
-*/
 
 struct dns_header {
     unsigned        tid :16;         /* query identification number */
@@ -53,14 +40,3 @@ struct dns_header {
 };
 
 #endif //NETWORK_ANALYZER_DNS_H
-
-/*
-chaussure de snow Benoit
-lampe frontale x5
-        saucisson
-2 balois
-sodas - cidre
-robot
-graines
-
-*/

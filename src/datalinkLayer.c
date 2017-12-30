@@ -14,7 +14,7 @@ void handle_ethernet(const u_char* packet, int verbosity){
     struct ether_header* ethernet_hdr;
     int ethernet_size = sizeof(struct ether_header);
     ethernet_hdr = (struct ether_header*) packet;
-    int type = ntohs (ethernet_hdr->ether_type);
+    int type = ntohs ((uint16_t) ethernet_hdr->ether_type);
 
     if (verbosity == HIGH){
         fprintf(stdout, "ETHERNET\n");

@@ -281,8 +281,14 @@ void handle_ftp(const u_char* payload, int payload_size, int is_request, int ver
  * @param packet
  * @param verbosity
  */
-void handle_dns(const u_char* packet, int verbosity) {
-    struct  dns_header* dns_hdr = (struct dns_header*) packet;
+void handle_dns(const u_char* payload, int verbosity) {
+    struct  dns_header* dns_hdr = (struct dns_header*) payload;
+
+    int questions = ntohs((uint16_t) dns_hdr->qdcount);
+    int answers = ntohs((uint16_t) dns_hdr->ancount);
+    int authority = ntohs((uint16_t) dns_hdr->nscount);
+    int additional = ntohs((uint16_t) dns_hdr->arcount);
+
     fprintf(stdout, "\t\t\tDNS\n");
     fprintf(stdout, "\t\t\t\tTransaction ID: 0x%x\n", ntohs((uint16_t) dns_hdr->tid));
 
@@ -338,10 +344,98 @@ void handle_dns(const u_char* packet, int verbosity) {
     else
         fprintf(stdout, "Recursion: not available\n");
 
-    fprintf(stdout, "\t\t\t\tQuestions: %d\n", ntohs((uint16_t) dns_hdr->qdcount));
-    fprintf(stdout, "\t\t\t\tAnswer RRs: %d\n", ntohs((uint16_t) dns_hdr->ancount));
-    fprintf(stdout, "\t\t\t\tAuthority RRs: %d\n", ntohs((uint16_t) dns_hdr->nscount));
-    fprintf(stdout, "\t\t\t\tAdditional RRs: %d\n", ntohs((uint16_t) dns_hdr->arcount));
+    //total questions/answers etc
+    fprintf(stdout, "\t\t\t\tQuestions: %d\n", questions);
+    fprintf(stdout, "\t\t\t\tAnswer RRs: %d\n", answers);
+    fprintf(stdout, "\t\t\t\tAuthority RRs: %d\n", authority);
+    fprintf(stdout, "\t\t\t\tAdditional RRs: %d\n", additional);
+
+    //shift packet
+    payload += sizeof(struct dns_header);
+    //questions
+    fprintf(stdout, "\t\t\t\tQueries\n");
+    for (int i = 0; i < questions; i++) {
+        fprintf(stdout, "\t\t\t\t\t");
+        //print query name
+        payload += 1;
+        int j = 0;
+        int readSize = 0;
+        while (1) {
+            if (payload[j] == 0x00)
+                break;
+
+            if (isprint(payload[j]))    //only print if it is printable ascii characters
+                fprintf(stdout, "%c", payload[j]);
+            else
+                fprintf(stdout, ".");
+            j++;
+            readSize++;
+        }
+        payload += readSize + 1;
+
+        //type
+        int type = (payload[0] << 8) + payload[1];
+        fprintf(stdout, " | type: ");
+        switch (type) {
+            case 1:
+                fprintf(stdout, "A");
+                break;
+            case 2:
+                fprintf(stdout, "NS");
+                break;
+            case 5:
+                fprintf(stdout, "CNAME");
+                break;
+            case 12:
+                fprintf(stdout, "PTR");
+                break;
+            case 15:
+                fprintf(stdout, "MX");
+                break;
+            case 33:
+                fprintf(stdout, "SRV");
+                break;
+            case 251:
+                fprintf(stdout, "IXFR");
+                break;
+            case  252:
+                fprintf(stdout, "AXFR");
+                break;
+            case 255:
+                fprintf(stdout, "All");
+                break;
+            default:
+                fprintf(stdout, "Unknown (%d - 0x%x)", type, type);
+                break;
+        }
+        fprintf(stdout, " | Class:");
+        payload += 2;
+
+        //class
+        int class = (payload[0] << 8) + payload[1];
+        switch (class) {
+            case 1:
+                fprintf(stdout, "IN");
+                break;
+            case 3:
+                fprintf(stdout, "CH");
+                break;
+            case 4:
+                fprintf(stdout, "HS");
+                break;
+            case 254:
+                fprintf(stdout, "None");
+                break;
+            case 255:
+                fprintf(stdout, "Any");
+                break;
+            default:
+                fprintf(stdout, "Unknown (%d - 0x%x)", class, class);
+                break;
+        }
+        payload += 2;
+        fprintf(stdout, "\n");
+    }
 }
 
 

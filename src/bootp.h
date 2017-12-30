@@ -1,4 +1,5 @@
-/** from
+/**
+ * from
  *    https://ftp.netbsd.org/pub/NetBSD/NetBSD-current/src/sys/lib/libsa/bootp.h
  */
 
