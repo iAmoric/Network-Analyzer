@@ -352,6 +352,7 @@ void handle_dns(const u_char* payload, int verbosity) {
 
     //shift packet
     payload += sizeof(struct dns_header);
+
     //questions
     fprintf(stdout, "\t\t\t\tQueries\n");
     for (int i = 0; i < questions; i++) {
@@ -436,6 +437,82 @@ void handle_dns(const u_char* payload, int verbosity) {
         payload += 2;
         fprintf(stdout, "\n");
     }
+
+
+    //answers
+    fprintf(stdout, "\t\t\t\tAnswers\n");
+    for (int i = 0; i < answers; i++) {
+        fprintf(stdout, "\t\t\t\t\t");
+
+        //name
+        fprintf(stdout, "Name: xxx ");
+        payload += 2;
+
+        //type
+        int type = (payload[0] << 8) + payload[1];
+        fprintf(stdout, " | type: ");
+        switch (type) {
+            case 1:
+                fprintf(stdout, "A");
+                break;
+            case 2:
+                fprintf(stdout, "NS");
+                break;
+            case 5:
+                fprintf(stdout, "CNAME");
+                break;
+            case 12:
+                fprintf(stdout, "PTR");
+                break;
+            case 15:
+                fprintf(stdout, "MX");
+                break;
+            case 33:
+                fprintf(stdout, "SRV");
+                break;
+            case 251:
+                fprintf(stdout, "IXFR");
+                break;
+            case  252:
+                fprintf(stdout, "AXFR");
+                break;
+            case 255:
+                fprintf(stdout, "All");
+                break;
+            default:
+                fprintf(stdout, "Unknown (%d - 0x%x)", type, type);
+                break;
+        }
+
+        //class
+        fprintf(stdout, " | Class:");
+        payload += 2;
+        int class = (payload[0] << 8) + payload[1];
+        switch (class) {
+            case 1:
+                fprintf(stdout, "IN");
+                break;
+            case 3:
+                fprintf(stdout, "CH");
+                break;
+            case 4:
+                fprintf(stdout, "HS");
+                break;
+            case 254:
+                fprintf(stdout, "None");
+                break;
+            case 255:
+                fprintf(stdout, "Any");
+                break;
+            default:
+                fprintf(stdout, "Unknown (%d - 0x%x)", class, class);
+                break;
+        }
+        payload += 2;
+        fprintf(stdout, "\n");
+
+    }
+
 }
 
 
