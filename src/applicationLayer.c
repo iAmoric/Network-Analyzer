@@ -283,7 +283,9 @@ void handle_ftp(const u_char* payload, int payload_size, int is_request, int ver
  */
 void handle_dns(const u_char* payload, int verbosity) {
     struct  dns_header* dns_hdr = (struct dns_header*) payload;
-
+    //TODO move in .h
+    char url[256];
+    char cnameUrl[256];
     int questions = ntohs((uint16_t) dns_hdr->qdcount);
     int answers = ntohs((uint16_t) dns_hdr->ancount);
     int authority = ntohs((uint16_t) dns_hdr->nscount);
@@ -354,25 +356,23 @@ void handle_dns(const u_char* payload, int verbosity) {
     payload += sizeof(struct dns_header);
 
     //questions
-    fprintf(stdout, "\t\t\t\tQueries\n");
+    if (questions > 0)
+        fprintf(stdout, "\t\t\t\tQueries\n");
     for (int i = 0; i < questions; i++) {
         fprintf(stdout, "\t\t\t\t\t");
         //print query name
         payload += 1;
         int j = 0;
-        int readSize = 0;
-        while (1) {
-            if (payload[j] == 0x00)
-                break;
-
-            if (isprint(payload[j]))    //only print if it is printable ascii characters
-                fprintf(stdout, "%c", payload[j]);
+        while (payload[j] != 0x00) {
+            if (isprint(payload[j]))
+                url[j] = payload[j];
             else
-                fprintf(stdout, ".");
+                url[j] = '.';
             j++;
-            readSize++;
         }
-        payload += readSize + 1;
+        url[j] = '\0';
+        payload += j + 1;
+        fprintf(stdout, "%s", url);
 
         //type
         int type = (payload[0] << 8) + payload[1];
@@ -409,7 +409,8 @@ void handle_dns(const u_char* payload, int verbosity) {
                 fprintf(stdout, "Unknown (%d - 0x%x)", type, type);
                 break;
         }
-        fprintf(stdout, " | Class:");
+
+        fprintf(stdout, " | Class: ");
         payload += 2;
 
         //class
@@ -439,13 +440,19 @@ void handle_dns(const u_char* payload, int verbosity) {
     }
 
 
+    int cname = 0;
     //answers
-    fprintf(stdout, "\t\t\t\tAnswers\n");
+    if (answers > 0)
+        fprintf(stdout, "\t\t\t\tAnswers\n");
+
     for (int i = 0; i < answers; i++) {
         fprintf(stdout, "\t\t\t\t\t");
 
         //name
-        fprintf(stdout, "Name: xxx ");
+        if (cname)
+            fprintf(stdout, "%s", cnameUrl);
+        else
+            fprintf(stdout, "%s", url);
         payload += 2;
 
         //type
@@ -460,6 +467,7 @@ void handle_dns(const u_char* payload, int verbosity) {
                 break;
             case 5:
                 fprintf(stdout, "CNAME");
+                cname = 1;
                 break;
             case 12:
                 fprintf(stdout, "PTR");
@@ -485,7 +493,7 @@ void handle_dns(const u_char* payload, int verbosity) {
         }
 
         //class
-        fprintf(stdout, " | Class:");
+        fprintf(stdout, " | Class: ");
         payload += 2;
         int class = (payload[0] << 8) + payload[1];
         switch (class) {
@@ -509,6 +517,47 @@ void handle_dns(const u_char* payload, int verbosity) {
                 break;
         }
         payload += 2;
+
+        //time to live
+        uint32_t ttl = *(uint32_t*)payload;
+        fprintf(stdout, " | TTL: %u", ntohl(ttl));
+        payload += 4;
+
+        //data length
+        uint16_t len = ntohs(*(uint16_t*)payload);
+        fprintf(stdout, " | length: %d", len);
+        payload += 2;
+
+        if (type == 5)
+                fprintf(stdout, " | CNAME: ");
+        else
+            fprintf(stdout, " | Addr: ");
+
+        if (type != 5 && class == 1){ //if it is ip address, print it
+            fprintf(stdout, "%d.%d.%d.%d", payload[0], payload[1], payload[2], payload[3]);
+        }
+        else {  //print the content
+            int j = 0;
+            while(j < len) {
+                if (isprint(payload[j])) {
+                    if (type == 5)  //save the url if neede
+                        cnameUrl[j] = payload[j];
+                    fprintf(stdout, "%c", payload[j]);
+                }
+                else {
+                    if (type == 5)
+                        cnameUrl[j] = '.';
+                    fprintf(stdout, ".");
+                }
+                j++;
+            }
+
+            cnameUrl[j] = '\0'; //string end
+        }
+
+        //shift
+        payload += len;
+
         fprintf(stdout, "\n");
 
     }

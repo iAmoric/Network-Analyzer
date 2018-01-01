@@ -10,7 +10,7 @@ add_definitions("-Wall -Wextra -lpcap")
 
 file(GLOB_RECURSE source_files src/*)
 
-add_executable(Network_Analyzer ${source_files} src/dns.h)
+add_executable(Network_Analyzer ${source_files})
 
 target_link_libraries(Network_Analyzer pcap)
 
