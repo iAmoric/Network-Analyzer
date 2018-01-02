@@ -247,7 +247,8 @@ void handle_ftp(const u_char* payload, int payload_size, int is_request, int ver
                 else {
                     fprintf(stdout, " (data)");
                     if (payload_size > 0)
-                        printHexaAscii(payload, payload_size);
+                        //printHexaAscii(payload, payload_size);
+                        fprintf(stdout, " %d bytes", payload_size);
                 }
             break;
 
