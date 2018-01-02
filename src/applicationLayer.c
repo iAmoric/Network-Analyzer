@@ -357,7 +357,7 @@ void handle_dns(const u_char* payload, int verbosity) {
 
     //questions
     if (questions > 0)
-        fprintf(stdout, "\t\t\t\tQueries\n");
+        fprintf(stdout, "\t\t\t\tQueries:\n");
     for (int i = 0; i < questions; i++) {
         fprintf(stdout, "\t\t\t\t\t");
         //print query name
@@ -437,19 +437,19 @@ void handle_dns(const u_char* payload, int verbosity) {
         }
         payload += 2;
         fprintf(stdout, "\n");
-    }
+    }   //end of questions
 
 
-    int cname = 0;
     //answers
+    int cnameFound = 0;
     if (answers > 0)
-        fprintf(stdout, "\t\t\t\tAnswers\n");
+        fprintf(stdout, "\t\t\t\tAnswers:\n");
 
     for (int i = 0; i < answers; i++) {
         fprintf(stdout, "\t\t\t\t\t");
 
         //name
-        if (cname)
+        if (cnameFound)
             fprintf(stdout, "%s", cnameUrl);
         else
             fprintf(stdout, "%s", url);
@@ -467,7 +467,7 @@ void handle_dns(const u_char* payload, int verbosity) {
                 break;
             case 5:
                 fprintf(stdout, "CNAME");
-                cname = 1;
+                cnameFound = 1;
                 break;
             case 12:
                 fprintf(stdout, "PTR");
@@ -560,6 +560,181 @@ void handle_dns(const u_char* payload, int verbosity) {
 
         fprintf(stdout, "\n");
 
+    }   //end of answers
+
+
+    //authority
+    if (authority > 0)
+        fprintf(stdout, "\t\t\t\tAuthoritative nameservers:\n");
+
+    for (int i = 0; i < authority; i++){
+        fprintf(stdout, "\t\t\t\t\txxx: ");
+        payload += 2;
+
+        //type
+        uint16_t type = ntohs(*(uint16_t*)payload);
+        fprintf(stdout, "type: ");
+        switch (type) {
+            case 1:
+                fprintf(stdout, "A");
+                break;
+            case 2:
+                fprintf(stdout, "NS");
+                break;
+            case 5:
+                fprintf(stdout, "CNAME");
+                break;
+            case 12:
+                fprintf(stdout, "PTR");
+                break;
+            case 15:
+                fprintf(stdout, "MX");
+                break;
+            case 33:
+                fprintf(stdout, "SRV");
+                break;
+            case 251:
+                fprintf(stdout, "IXFR");
+                break;
+            case  252:
+                fprintf(stdout, "AXFR");
+                break;
+            case 255:
+                fprintf(stdout, "All");
+                break;
+            default:
+                fprintf(stdout, "Unknown (%d - 0x%x)", type, type);
+                break;
+        }
+
+        fprintf(stdout, " | Class: ");
+        payload += 2;
+
+        uint16_t class = ntohs(*(uint16_t*)payload);
+        switch (class) {
+            case 1:
+                fprintf(stdout, "IN");
+                break;
+            case 3:
+                fprintf(stdout, "CH");
+                break;
+            case 4:
+                fprintf(stdout, "HS");
+                break;
+            case 254:
+                fprintf(stdout, "None");
+                break;
+            case 255:
+                fprintf(stdout, "Any");
+                break;
+            default:
+                fprintf(stdout, "Unknown (%d - 0x%x)", class, class);
+                break;
+        }
+        payload += 2;
+
+        //time to live
+        uint32_t ttl = *(uint32_t*)payload;
+        fprintf(stdout, " | TTL: %u", ntohl(ttl));
+        payload += 4;
+
+        //data length
+        uint16_t len = ntohs(*(uint16_t*)payload);
+        fprintf(stdout, " | length: %d", len);
+        payload += 2;
+
+        if (type == 1 && class == 1)
+            fprintf(stdout, " | Address: %d.%d.%d.%d\n", payload[0], payload[1], payload[2], payload[3]);
+        else
+            fprintf(stdout, " | xxx\n");
+        payload += len;
+    }
+
+    //additional
+    if (additional > 0)
+        fprintf(stdout, "\t\t\t\tAdditional records:\n");
+
+    for (int i = 0; i < additional; i++){
+        fprintf(stdout, "\t\t\t\t\txxx: ");
+        payload += 2;
+
+        //type
+        uint16_t type = ntohs(*(uint16_t*)payload);
+        fprintf(stdout, "type: ");
+        switch (type) {
+            case 1:
+                fprintf(stdout, "A");
+                break;
+            case 2:
+                fprintf(stdout, "NS");
+                break;
+            case 5:
+                fprintf(stdout, "CNAME");
+                break;
+            case 12:
+                fprintf(stdout, "PTR");
+                break;
+            case 15:
+                fprintf(stdout, "MX");
+                break;
+            case 33:
+                fprintf(stdout, "SRV");
+                break;
+            case 251:
+                fprintf(stdout, "IXFR");
+                break;
+            case  252:
+                fprintf(stdout, "AXFR");
+                break;
+            case 255:
+                fprintf(stdout, "All");
+                break;
+            default:
+                fprintf(stdout, "Unknown (%d - 0x%x)", type, type);
+                break;
+        }
+
+        fprintf(stdout, " | Class: ");
+        payload += 2;
+
+        uint16_t class = ntohs(*(uint16_t*)payload);
+        switch (class) {
+            case 1:
+                fprintf(stdout, "IN");
+                break;
+            case 3:
+                fprintf(stdout, "CH");
+                break;
+            case 4:
+                fprintf(stdout, "HS");
+                break;
+            case 254:
+                fprintf(stdout, "None");
+                break;
+            case 255:
+                fprintf(stdout, "Any");
+                break;
+            default:
+                fprintf(stdout, "Unknown (%d - 0x%x)", class, class);
+                break;
+        }
+        payload += 2;
+
+        //time to live
+        uint32_t ttl = *(uint32_t*)payload;
+        fprintf(stdout, " | TTL: %u", ntohl(ttl));
+        payload += 4;
+
+        //data length
+        uint16_t len = ntohs(*(uint16_t*)payload);
+        fprintf(stdout, " | length: %d", len);
+        payload += 2;
+
+        if (type == 1 && class == 1)
+            fprintf(stdout, " | Address: %d.%d.%d.%d\n", payload[0], payload[1], payload[2], payload[3]);
+        else
+            fprintf(stdout, " | xxx\n");
+        payload += len;
     }
 
 }
