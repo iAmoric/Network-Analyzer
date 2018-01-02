@@ -284,458 +284,251 @@ void handle_ftp(const u_char* payload, int payload_size, int is_request, int ver
 void handle_dns(const u_char* payload, int verbosity) {
     struct  dns_header* dns_hdr = (struct dns_header*) payload;
     //TODO move in .h
-    char url[256];
-    char cnameUrl[256];
+    char url[MAX_URL_SIZE];
+    char cnameUrl[MAX_URL_SIZE];
     int questions = ntohs((uint16_t) dns_hdr->qdcount);
     int answers = ntohs((uint16_t) dns_hdr->ancount);
     int authority = ntohs((uint16_t) dns_hdr->nscount);
     int additional = ntohs((uint16_t) dns_hdr->arcount);
 
-    fprintf(stdout, "\t\t\tDNS\n");
-    fprintf(stdout, "\t\t\t\tTransaction ID: 0x%x\n", ntohs((uint16_t) dns_hdr->tid));
+    switch (verbosity) {
+        case HIGH:
+            fprintf(stdout, "\t\t\tDNS\n");
+            fprintf(stdout, "\t\t\t\tTransaction ID: 0x%x\n", ntohs((uint16_t) dns_hdr->tid));
 
-    //query/response
-    if (dns_hdr->qr & 1)
-        fprintf(stdout, "\t\t\t\tResponse: ");
-    else
-        fprintf(stdout, "\t\t\t\tQuery: ");
+            //query/response
+            if (dns_hdr->qr & 1)
+                fprintf(stdout, "\t\t\t\tResponse: ");
+            else
+                fprintf(stdout, "\t\t\t\tQuery: ");
 
-    switch (dns_hdr->opcode){
-        case 0:
-            fprintf(stdout, "standard query");
+            printDnsOpcode(dns_hdr->opcode);
+
+            fprintf(stdout, "\n\t\t\t\t");
+
+            //authoritative answer
+            if (dns_hdr->aa & 1)
+                fprintf(stdout, "Answer: authoritative | ");
+            else
+                fprintf(stdout, "Answer: not authoritative | ");
+
+            //truncated
+            if (dns_hdr->tc & 1)
+                fprintf(stdout, "Message: truncated | ");
+            else
+                fprintf(stdout, "Answer: not truncated | ");
+
+            //recursion desired
+            if (dns_hdr->rd & 1)
+                fprintf(stdout, "Recursion: desired | ");
+            else
+                fprintf(stdout, "Answer: not desired | ");
+
+            //recusion available
+            if (dns_hdr->ra & 1)
+                fprintf(stdout, "Recursion: available\n");
+            else
+                fprintf(stdout, "Recursion: not available\n");
+
+            //total questions/answers etc
+            fprintf(stdout, "\t\t\t\tQuestions: %d ", questions);
+            fprintf(stdout, "| Answer RRs: %d ", answers);
+            fprintf(stdout, "| Authority RRs: %d", authority);
+            fprintf(stdout, "| Additional RRs: %d\n", additional);
+
+            //shift packet
+            payload += sizeof(struct dns_header);
+
+            //questions
+            if (questions > 0)
+                fprintf(stdout, "\t\t\t\tQueries:\n");
+            for (int i = 0; i < questions; i++) {
+                fprintf(stdout, "\t\t\t\t\t");
+                //print query name
+                payload += 1;
+                int j = 0;
+                while (payload[j] != 0x00) {
+                    if (isprint(payload[j]))
+                        url[j] = payload[j];    //save the url for the response
+                    else
+                        url[j] = '.';
+                    j++;
+                }
+                url[j] = '\0';  //string end
+                payload += j + 1;
+                fprintf(stdout, "%s", url);
+
+                //type
+                uint16_t type = ntohs(*(uint16_t*)payload);
+                fprintf(stdout, " | type: ");
+                printDnsType(type, 0);
+                payload += 2;
+
+                //class
+                uint16_t class = ntohs(*(uint16_t*)payload);
+                fprintf(stdout, " | Class: ");
+                printDnsClass(class);
+                payload += 2;
+
+                fprintf(stdout, "\n");
+            }   //end of questions
+
+
+            //answers
+            if (answers > 0)
+                fprintf(stdout, "\t\t\t\tAnswers:\n");
+            int cnameFound = 0;
+            for (int i = 0; i < answers; i++) {
+                fprintf(stdout, "\t\t\t\t\t");
+
+                //name
+                if (cnameFound)
+                    fprintf(stdout, "%s", cnameUrl);
+                else
+                    fprintf(stdout, "%s", url);
+                payload += 2;
+
+                //type
+                uint16_t type = ntohs(*(uint16_t*)payload);
+                fprintf(stdout, " | type: ");
+                cnameFound = printDnsType(type, cnameFound);
+                payload += 2;
+
+                //class
+                fprintf(stdout, " | Class: ");
+                uint16_t class = ntohs(*(uint16_t*)payload);
+                printDnsClass(class);
+                payload += 2;
+
+                //time to live
+                uint32_t ttl = *(uint32_t*)payload;
+                fprintf(stdout, " | TTL: %u", ntohl(ttl));
+                payload += 4;
+
+                //data length
+                uint16_t len = ntohs(*(uint16_t*)payload);
+                fprintf(stdout, " | length: %d", len);
+                payload += 2;
+
+                if (type == 5)
+                    fprintf(stdout, " | CNAME: ");
+                else
+                    fprintf(stdout, " | Addr: ");
+
+                if (type != 5 && class == 1){ //if it is ip address, print it
+                    fprintf(stdout, "%d.%d.%d.%d", payload[0], payload[1], payload[2], payload[3]);
+                }
+                else {  //print the content
+                    int j = 0;
+                    while(j < len) {
+                        if (isprint(payload[j])) {
+                            if (type == 5)  //save the url if needed
+                                cnameUrl[j] = payload[j];
+                            fprintf(stdout, "%c", payload[j]);
+                        }
+                        else {
+                            if (type == 5)
+                                cnameUrl[j] = '.';
+                            fprintf(stdout, ".");
+                        }
+                        j++;
+                    }
+
+                    cnameUrl[j] = '\0'; //string end
+                }
+
+                //shift
+                payload += len;
+
+                fprintf(stdout, "\n");
+            }   //end of answers
+
+
+            //authority
+            if (authority > 0)
+                fprintf(stdout, "\t\t\t\tAuthoritative nameservers:\n");
+            for (int i = 0; i < authority; i++){
+                fprintf(stdout, "\t\t\t\t\txxx: ");
+                payload += 2;
+
+                //type
+                uint16_t type = ntohs(*(uint16_t*)payload);
+                fprintf(stdout, "type: ");
+                printDnsType(type, 0);
+                payload += 2;
+                //class
+
+                fprintf(stdout, " | Class: ");
+                uint16_t class = ntohs(*(uint16_t*)payload);
+                printDnsClass(class);
+                payload += 2;
+
+                //time to live
+                uint32_t ttl = *(uint32_t*)payload;
+                fprintf(stdout, " | TTL: %u", ntohl(ttl));
+                payload += 4;
+
+                //data length
+                uint16_t len = ntohs(*(uint16_t*)payload);
+                fprintf(stdout, " | length: %d", len);
+                payload += 2;
+
+                if (type == 1 && class == 1)    //print ip address if needed
+                    fprintf(stdout, " | Address: %d.%d.%d.%d\n", payload[0], payload[1], payload[2], payload[3]);
+                else
+                    fprintf(stdout, " | xxx\n");
+
+                //shift
+                payload += len;
+            }   //end of authoritative nameservers
+
+            //additional
+            if (additional > 0)
+                fprintf(stdout, "\t\t\t\tAdditional records:\n");
+            for (int i = 0; i < additional; i++){
+                fprintf(stdout, "\t\t\t\t\txxx: ");
+                payload += 2;
+
+                //type
+                uint16_t type = ntohs(*(uint16_t*)payload);
+                fprintf(stdout, "type: ");
+                printDnsType(type, 0);
+                payload += 2;
+
+                //class
+                fprintf(stdout, " | Class: ");
+                uint16_t class = ntohs(*(uint16_t*)payload);
+                printDnsClass(class);
+                payload += 2;
+
+                //time to live
+                uint32_t ttl = *(uint32_t*)payload;
+                fprintf(stdout, " | TTL: %u", ntohl(ttl));
+                payload += 4;
+
+                //data length
+                uint16_t len = ntohs(*(uint16_t*)payload);
+                fprintf(stdout, " | length: %d", len);
+                payload += 2;
+
+                if (type == 1 && class == 1)    //print ip address if needed
+                    fprintf(stdout, " | Address: %d.%d.%d.%d\n", payload[0], payload[1], payload[2], payload[3]);
+                else
+                    fprintf(stdout, " | xxx\n");
+
+                //shift
+                payload += len;
+            }   //end of additional
             break;
-        case 1:
-            fprintf(stdout, "inverse query");
+
+        case MEDIUM:
             break;
-        case 2:
-            fprintf(stdout, "server status request");
-            break;
-        case 4:
-            fprintf(stdout, "notify");
-            break;
-        case 5:
-            fprintf(stdout, "update");
+        case LOW:
             break;
         default:
-            fprintf(stdout, "unknow opcode (%d)", dns_hdr->opcode);
             break;
     }
-    fprintf(stdout, "\n\t\t\t\t");
 
-    //authoritative answer
-    if (dns_hdr->aa & 1)
-        fprintf(stdout, "Answer: authoritative | ");
-    else
-        fprintf(stdout, "Answer: not authoritative | ");
-
-    //truncated
-    if (dns_hdr->tc & 1)
-        fprintf(stdout, "Message: truncated | ");
-    else
-        fprintf(stdout, "Answer: not truncated | ");
-
-    //recursion desired
-    if (dns_hdr->rd & 1)
-        fprintf(stdout, "Recursion: desired | ");
-    else
-        fprintf(stdout, "Answer: not desired | ");
-
-    //recusion available
-    if (dns_hdr->ra & 1)
-        fprintf(stdout, "Recursion: available\n");
-    else
-        fprintf(stdout, "Recursion: not available\n");
-
-    //total questions/answers etc
-    fprintf(stdout, "\t\t\t\tQuestions: %d ", questions);
-    fprintf(stdout, "| Answer RRs: %d ", answers);
-    fprintf(stdout, "| Authority RRs: %d", authority);
-    fprintf(stdout, "| Additional RRs: %d\n", additional);
-
-    //shift packet
-    payload += sizeof(struct dns_header);
-
-    //questions
-    if (questions > 0)
-        fprintf(stdout, "\t\t\t\tQueries:\n");
-    for (int i = 0; i < questions; i++) {
-        fprintf(stdout, "\t\t\t\t\t");
-        //print query name
-        payload += 1;
-        int j = 0;
-        while (payload[j] != 0x00) {
-            if (isprint(payload[j]))
-                url[j] = payload[j];
-            else
-                url[j] = '.';
-            j++;
-        }
-        url[j] = '\0';
-        payload += j + 1;
-        fprintf(stdout, "%s", url);
-
-        //type
-        int type = (payload[0] << 8) + payload[1];
-        fprintf(stdout, " | type: ");
-        switch (type) {
-            case 1:
-                fprintf(stdout, "A");
-                break;
-            case 2:
-                fprintf(stdout, "NS");
-                break;
-            case 5:
-                fprintf(stdout, "CNAME");
-                break;
-            case 12:
-                fprintf(stdout, "PTR");
-                break;
-            case 15:
-                fprintf(stdout, "MX");
-                break;
-            case 33:
-                fprintf(stdout, "SRV");
-                break;
-            case 251:
-                fprintf(stdout, "IXFR");
-                break;
-            case  252:
-                fprintf(stdout, "AXFR");
-                break;
-            case 255:
-                fprintf(stdout, "All");
-                break;
-            default:
-                fprintf(stdout, "Unknown (%d - 0x%x)", type, type);
-                break;
-        }
-
-        fprintf(stdout, " | Class: ");
-        payload += 2;
-
-        //class
-        int class = (payload[0] << 8) + payload[1];
-        switch (class) {
-            case 1:
-                fprintf(stdout, "IN");
-                break;
-            case 3:
-                fprintf(stdout, "CH");
-                break;
-            case 4:
-                fprintf(stdout, "HS");
-                break;
-            case 254:
-                fprintf(stdout, "None");
-                break;
-            case 255:
-                fprintf(stdout, "Any");
-                break;
-            default:
-                fprintf(stdout, "Unknown (%d - 0x%x)", class, class);
-                break;
-        }
-        payload += 2;
-        fprintf(stdout, "\n");
-    }   //end of questions
-
-
-    //answers
-    int cnameFound = 0;
-    if (answers > 0)
-        fprintf(stdout, "\t\t\t\tAnswers:\n");
-
-    for (int i = 0; i < answers; i++) {
-        fprintf(stdout, "\t\t\t\t\t");
-
-        //name
-        if (cnameFound)
-            fprintf(stdout, "%s", cnameUrl);
-        else
-            fprintf(stdout, "%s", url);
-        payload += 2;
-
-        //type
-        int type = (payload[0] << 8) + payload[1];
-        fprintf(stdout, " | type: ");
-        switch (type) {
-            case 1:
-                fprintf(stdout, "A");
-                break;
-            case 2:
-                fprintf(stdout, "NS");
-                break;
-            case 5:
-                fprintf(stdout, "CNAME");
-                cnameFound = 1;
-                break;
-            case 12:
-                fprintf(stdout, "PTR");
-                break;
-            case 15:
-                fprintf(stdout, "MX");
-                break;
-            case 33:
-                fprintf(stdout, "SRV");
-                break;
-            case 251:
-                fprintf(stdout, "IXFR");
-                break;
-            case  252:
-                fprintf(stdout, "AXFR");
-                break;
-            case 255:
-                fprintf(stdout, "All");
-                break;
-            default:
-                fprintf(stdout, "Unknown (%d - 0x%x)", type, type);
-                break;
-        }
-
-        //class
-        fprintf(stdout, " | Class: ");
-        payload += 2;
-        int class = (payload[0] << 8) + payload[1];
-        switch (class) {
-            case 1:
-                fprintf(stdout, "IN");
-                break;
-            case 3:
-                fprintf(stdout, "CH");
-                break;
-            case 4:
-                fprintf(stdout, "HS");
-                break;
-            case 254:
-                fprintf(stdout, "None");
-                break;
-            case 255:
-                fprintf(stdout, "Any");
-                break;
-            default:
-                fprintf(stdout, "Unknown (%d - 0x%x)", class, class);
-                break;
-        }
-        payload += 2;
-
-        //time to live
-        uint32_t ttl = *(uint32_t*)payload;
-        fprintf(stdout, " | TTL: %u", ntohl(ttl));
-        payload += 4;
-
-        //data length
-        uint16_t len = ntohs(*(uint16_t*)payload);
-        fprintf(stdout, " | length: %d", len);
-        payload += 2;
-
-        if (type == 5)
-                fprintf(stdout, " | CNAME: ");
-        else
-            fprintf(stdout, " | Addr: ");
-
-        if (type != 5 && class == 1){ //if it is ip address, print it
-            fprintf(stdout, "%d.%d.%d.%d", payload[0], payload[1], payload[2], payload[3]);
-        }
-        else {  //print the content
-            int j = 0;
-            while(j < len) {
-                if (isprint(payload[j])) {
-                    if (type == 5)  //save the url if neede
-                        cnameUrl[j] = payload[j];
-                    fprintf(stdout, "%c", payload[j]);
-                }
-                else {
-                    if (type == 5)
-                        cnameUrl[j] = '.';
-                    fprintf(stdout, ".");
-                }
-                j++;
-            }
-
-            cnameUrl[j] = '\0'; //string end
-        }
-
-        //shift
-        payload += len;
-
-        fprintf(stdout, "\n");
-
-    }   //end of answers
-
-
-    //authority
-    if (authority > 0)
-        fprintf(stdout, "\t\t\t\tAuthoritative nameservers:\n");
-
-    for (int i = 0; i < authority; i++){
-        fprintf(stdout, "\t\t\t\t\txxx: ");
-        payload += 2;
-
-        //type
-        uint16_t type = ntohs(*(uint16_t*)payload);
-        fprintf(stdout, "type: ");
-        switch (type) {
-            case 1:
-                fprintf(stdout, "A");
-                break;
-            case 2:
-                fprintf(stdout, "NS");
-                break;
-            case 5:
-                fprintf(stdout, "CNAME");
-                break;
-            case 12:
-                fprintf(stdout, "PTR");
-                break;
-            case 15:
-                fprintf(stdout, "MX");
-                break;
-            case 33:
-                fprintf(stdout, "SRV");
-                break;
-            case 251:
-                fprintf(stdout, "IXFR");
-                break;
-            case  252:
-                fprintf(stdout, "AXFR");
-                break;
-            case 255:
-                fprintf(stdout, "All");
-                break;
-            default:
-                fprintf(stdout, "Unknown (%d - 0x%x)", type, type);
-                break;
-        }
-
-        fprintf(stdout, " | Class: ");
-        payload += 2;
-
-        uint16_t class = ntohs(*(uint16_t*)payload);
-        switch (class) {
-            case 1:
-                fprintf(stdout, "IN");
-                break;
-            case 3:
-                fprintf(stdout, "CH");
-                break;
-            case 4:
-                fprintf(stdout, "HS");
-                break;
-            case 254:
-                fprintf(stdout, "None");
-                break;
-            case 255:
-                fprintf(stdout, "Any");
-                break;
-            default:
-                fprintf(stdout, "Unknown (%d - 0x%x)", class, class);
-                break;
-        }
-        payload += 2;
-
-        //time to live
-        uint32_t ttl = *(uint32_t*)payload;
-        fprintf(stdout, " | TTL: %u", ntohl(ttl));
-        payload += 4;
-
-        //data length
-        uint16_t len = ntohs(*(uint16_t*)payload);
-        fprintf(stdout, " | length: %d", len);
-        payload += 2;
-
-        if (type == 1 && class == 1)
-            fprintf(stdout, " | Address: %d.%d.%d.%d\n", payload[0], payload[1], payload[2], payload[3]);
-        else
-            fprintf(stdout, " | xxx\n");
-        payload += len;
-    }
-
-    //additional
-    if (additional > 0)
-        fprintf(stdout, "\t\t\t\tAdditional records:\n");
-
-    for (int i = 0; i < additional; i++){
-        fprintf(stdout, "\t\t\t\t\txxx: ");
-        payload += 2;
-
-        //type
-        uint16_t type = ntohs(*(uint16_t*)payload);
-        fprintf(stdout, "type: ");
-        switch (type) {
-            case 1:
-                fprintf(stdout, "A");
-                break;
-            case 2:
-                fprintf(stdout, "NS");
-                break;
-            case 5:
-                fprintf(stdout, "CNAME");
-                break;
-            case 12:
-                fprintf(stdout, "PTR");
-                break;
-            case 15:
-                fprintf(stdout, "MX");
-                break;
-            case 33:
-                fprintf(stdout, "SRV");
-                break;
-            case 251:
-                fprintf(stdout, "IXFR");
-                break;
-            case  252:
-                fprintf(stdout, "AXFR");
-                break;
-            case 255:
-                fprintf(stdout, "All");
-                break;
-            default:
-                fprintf(stdout, "Unknown (%d - 0x%x)", type, type);
-                break;
-        }
-
-        fprintf(stdout, " | Class: ");
-        payload += 2;
-
-        uint16_t class = ntohs(*(uint16_t*)payload);
-        switch (class) {
-            case 1:
-                fprintf(stdout, "IN");
-                break;
-            case 3:
-                fprintf(stdout, "CH");
-                break;
-            case 4:
-                fprintf(stdout, "HS");
-                break;
-            case 254:
-                fprintf(stdout, "None");
-                break;
-            case 255:
-                fprintf(stdout, "Any");
-                break;
-            default:
-                fprintf(stdout, "Unknown (%d - 0x%x)", class, class);
-                break;
-        }
-        payload += 2;
-
-        //time to live
-        uint32_t ttl = *(uint32_t*)payload;
-        fprintf(stdout, " | TTL: %u", ntohl(ttl));
-        payload += 4;
-
-        //data length
-        uint16_t len = ntohs(*(uint16_t*)payload);
-        fprintf(stdout, " | length: %d", len);
-        payload += 2;
-
-        if (type == 1 && class == 1)
-            fprintf(stdout, " | Address: %d.%d.%d.%d\n", payload[0], payload[1], payload[2], payload[3]);
-        else
-            fprintf(stdout, " | xxx\n");
-        payload += len;
-    }
 
 }
 

@@ -6,6 +6,8 @@
 #ifndef NETWORK_ANALYZER_DNS_H
 #define NETWORK_ANALYZER_DNS_H
 
+#define MAX_URL_SIZE 256
+
 struct dns_header {
     unsigned        tid :16;         /* query identification number */
 #if BYTE_ORDER == BIG_ENDIAN

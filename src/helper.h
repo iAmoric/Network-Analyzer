@@ -85,3 +85,8 @@ void telnetCommand(const u_char* payload, int payload_size);
  * @param payload_size
  */
 void telnetOptions(int option);
+
+
+int printDnsType(int type, int cnameFound);
+void printDnsClass(int class);
+void printDnsOpcode(int opcode);

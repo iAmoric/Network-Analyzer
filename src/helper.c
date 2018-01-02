@@ -394,3 +394,89 @@ void telnetCommand(const u_char *payload, int payload_size) {
         fprintf(stdout, "\n");
     }
 }
+
+
+int printDnsType(int type, int cnameFound){
+    switch (type) {
+        case 1:
+            fprintf(stdout, "A");
+            break;
+        case 2:
+            fprintf(stdout, "NS");
+            break;
+        case 5:
+            fprintf(stdout, "CNAME");
+            cnameFound = 1;
+            break;
+        case 12:
+            fprintf(stdout, "PTR");
+            break;
+        case 15:
+            fprintf(stdout, "MX");
+            break;
+        case 33:
+            fprintf(stdout, "SRV");
+            break;
+        case 251:
+            fprintf(stdout, "IXFR");
+            break;
+        case  252:
+            fprintf(stdout, "AXFR");
+            break;
+        case 255:
+            fprintf(stdout, "All");
+            break;
+        default:
+            fprintf(stdout, "Unknown (%d - 0x%x)", type, type);
+            break;
+    }
+    return cnameFound;
+}
+
+
+
+void printDnsClass(int class) {
+    switch (class) {
+        case 1:
+            fprintf(stdout, "IN");
+            break;
+        case 3:
+            fprintf(stdout, "CH");
+            break;
+        case 4:
+            fprintf(stdout, "HS");
+            break;
+        case 254:
+            fprintf(stdout, "None");
+            break;
+        case 255:
+            fprintf(stdout, "Any");
+            break;
+        default:
+            fprintf(stdout, "Unknown (%d - 0x%x)", class, class);
+            break;
+    }
+}
+
+void printDnsOpcode(int opcode) {
+    switch (opcode){
+        case 0:
+            fprintf(stdout, "standard query");
+            break;
+        case 1:
+            fprintf(stdout, "inverse query");
+            break;
+        case 2:
+            fprintf(stdout, "server status request");
+            break;
+        case 4:
+            fprintf(stdout, "notify");
+            break;
+        case 5:
+            fprintf(stdout, "update");
+            break;
+        default:
+            fprintf(stdout, "unknow opcode (%d)", opcode);
+            break;
+    }
+}
