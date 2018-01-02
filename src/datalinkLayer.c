@@ -42,7 +42,7 @@ void handle_ethernet(const u_char* packet, int verbosity){
         case ETHERTYPE_IPV6:    //ipv6 is not supported
             if (verbosity == HIGH)
                 fprintf(stdout, "\t");
-            fprintf(stdout, "IPv6 (Unsuppported)\n");
+            fprintf(stdout, "IPv6 (Unsuppported)");
         break;
 
         default:

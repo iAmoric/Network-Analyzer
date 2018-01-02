@@ -148,7 +148,7 @@ void handle_tcp(const u_char* packet, int payload_size, int verbosity) {
 			}
 
 			//source port -> destination port
-			fprintf(stdout, "%d -> %d ", ntohs((uint16_t) tcp_hdr->th_sport), ntohs((uint16_t) tcp_hdr->th_dport));
+			fprintf(stdout, " \t%d -> %d ", ntohs((uint16_t) tcp_hdr->th_sport), ntohs((uint16_t) tcp_hdr->th_dport));
 
 			//flags
 			fprintf(stdout, "[ ");
@@ -206,8 +206,6 @@ void handle_tcp(const u_char* packet, int payload_size, int verbosity) {
 	else if (ntohs((uint16_t) tcp_hdr->th_sport) == IMAP || ntohs((uint16_t) tcp_hdr->th_dport) == 143)
 		handle_imap(packet, payload_size, verbosity);
 
-	else
-		fprintf(stdout, "\t\t\tUnknown protocol");
 }
 
 

@@ -178,7 +178,7 @@ void handle_arp(const u_char* packet, int verbosity) {
             fprintf(stdout, "%02x", arp_hdr->tha[i]);
             fprintf(stdout, "\t");
 
-            fprintf(stdout, "Protocol: ARP\t");
+            fprintf(stdout, "ARP\t");
 
             if (hard_addr == 1 && hard_pro == 2048) {
                 if (op == ARPOP_REQUEST) {
