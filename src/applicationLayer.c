@@ -522,9 +522,19 @@ void handle_dns(const u_char* payload, int verbosity) {
             break;
 
         case MEDIUM:
+            fprintf(stdout, "DNS ");
+            //type of query/response
+            if (dns_hdr->qr & 1)
+                fprintf(stdout, "(Response - ");
+            else
+                fprintf(stdout, "(Query - ");
+            printDnsOpcode(dns_hdr->opcode);
+            fprintf(stdout, ")");
             break;
+
         case LOW:
             break;
+
         default:
             break;
     }
