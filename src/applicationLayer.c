@@ -284,7 +284,6 @@ void handle_ftp(const u_char* payload, int payload_size, int is_request, int ver
  */
 void handle_dns(const u_char* payload, int verbosity) {
     struct  dns_header* dns_hdr = (struct dns_header*) payload;
-    //TODO move in .h
     char url[MAX_URL_SIZE];
     char cnameUrl[MAX_URL_SIZE];
     int questions = ntohs((uint16_t) dns_hdr->qdcount);

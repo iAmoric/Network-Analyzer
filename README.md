@@ -5,8 +5,8 @@
     make
     ./analyzer -i interface | -o capture_file -f filter -v verbosity
 
-`-i` is for live capture, and `-o` is for offline capture. Do not use both at the same time
-`-v` is the verbosity. Verbosity is between 1 (low) and 3 (high)
+`-i` is for live capture, and /home/iamoric/Téléchargements/imap.pcap is for offline capture. Do not use both at the same time. 
+`-v` is the verbosity. Verbosity must be between 1 (low) and 3 (high). Use `-f` to apply a filter.
 
 ## Supported protocols
 
