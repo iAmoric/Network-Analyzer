@@ -21,7 +21,7 @@
 //buffer for error
 char errbuf[PCAP_ERRBUF_SIZE];
 
-int verbosity;
+int verbosity = 3;
 
 
 /**
@@ -111,7 +111,7 @@ int main(int argc, char **argv) {
     int filter_selected = 0;
     char* filter = NULL;
     struct bpf_program fp;
-    bpf_u_int32 mask = NULL;
+    bpf_u_int32 mask = 0;
 
     //get the options of the program
     while((option = getopt(argc, argv, "hi:o:f:v:")) != -1) {
@@ -153,10 +153,9 @@ int main(int argc, char **argv) {
                 verbosity = atoi(optarg);
 
                 if (verbosity < 1 || verbosity > 3) {
-                    fprintf(stderr, "verbosity must be between 1 (low) and 3 (high)\n");
+                    fprintf(stderr, "verbosity must be between 1 (low) and 3 (high).\n");
                     return 0;
                 }
-
             break;
 
             default:

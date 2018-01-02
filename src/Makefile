@@ -21,4 +21,3 @@ helper.o : helper.c helper.h
 
 clean:
 	rm -rf *.o
-    rm analyzer
