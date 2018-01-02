@@ -17,7 +17,7 @@
 * [x] UDP
 * [x] BOOTP
 * [x] DHCP
-* [ ] DNS
+* [x] DNS
 * [x] HTTP(S)
 * [x] FTP
 * [x] SMTP(S)
@@ -41,3 +41,4 @@
 * [x] telnet : verbosity medium & low
 * [x] telnet : check indentation data
 * [x] ftp request : verbosity low
+* [ ] add comments
