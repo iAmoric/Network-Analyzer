@@ -533,6 +533,90 @@ void handle_dns(const u_char* payload, int verbosity) {
             break;
 
         case LOW:
+            fprintf(stdout, "DNS\t");
+            //type of query/response
+            if (dns_hdr->qr & 1)
+                fprintf(stdout, "Response ");
+            else
+                fprintf(stdout, "Query ");
+            printDnsOpcode(dns_hdr->opcode);
+            fprintf(stdout, " 0x%x ", ntohs((uint16_t) dns_hdr->tid));
+
+            //shift
+            payload += sizeof(struct dns_header);
+
+            if (questions > 0 && answers == 0){ //if query, print 1st question
+                payload += 1;
+                int j = 0;
+                while (payload[j] != 0x00) {
+                    if (isprint(payload[j]))
+                        url[j] = payload[j];    //save the url for the response
+                    else
+                        url[j] = '.';
+                    j++;
+                }
+                url[j] = '\0';  //string end
+                payload += j + 1;
+
+                //type
+                uint16_t type = ntohs(*(uint16_t*)payload);
+                printDnsType(type, 0);
+                fprintf(stdout, " %s", url);
+            }
+
+            if (answers > 0) {  //if response, print 1st answers
+                //shift the questions and save the url
+                for (int i = 0; i < questions; i++) {
+                    payload += 1;
+                    int j = 0;
+                    while (payload[j] != 0x00) {
+                        if (isprint(payload[j]))
+                            url[j] = payload[j];    //save the url for the response
+                        else
+                            url[j] = '.';
+                        j++;
+                    }
+                    url[j] = '\0';  //string end
+                    payload += j + 1;   //name
+                    payload += 2;       //type
+                    payload += 2;       //class
+                }
+
+                payload += 2;
+
+                //type
+                uint16_t type = ntohs(*(uint16_t*)payload);
+                printDnsType(type, 0);
+                fprintf(stdout, " %s", url);
+                payload += 2;
+
+                if (type == 1) {
+                    payload += 2;           //class
+                    payload += 4;           //ttl
+                    payload += 2;           //length
+                    fprintf(stdout, " %d.%d.%d.%d", payload[0], payload[1], payload[2], payload[3]);
+                }
+                else if (type == 5) {
+                    payload += 2;           //class
+                    payload += 4;           //ttl
+                    //length
+                    uint16_t len = ntohs(*(uint16_t*)payload);
+                    payload += 2;
+                    int j = 0;
+                    fprintf(stdout, " ");
+                    while(j < len) {
+                        if (isprint(payload[j]))
+                            fprintf(stdout, "%c", payload[j]);
+                        else
+                            fprintf(stdout, ".");
+                        j++;
+                    }
+
+                }
+
+
+            }
+
             break;
 
         default:
