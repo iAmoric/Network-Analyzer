@@ -6,7 +6,12 @@
 #ifndef NETWORK_ANALYZER_DNS_H
 #define NETWORK_ANALYZER_DNS_H
 
+
+// this file contains the dns structure for the main fields
+
+//max size of the url in queries/answers
 #define MAX_URL_SIZE 256
+
 
 struct dns_header {
     unsigned        tid :16;         /* query identification number */

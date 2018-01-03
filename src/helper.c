@@ -6,7 +6,7 @@
 #include "helper.h"
 
 /**
- * @brief this function print the payload in hexa and ascii format
+ * @brief this function prints the payload in hexa and ascii format
  * @param payload
  * @param payload_size
  */
@@ -51,7 +51,7 @@ void printHexaAscii(const u_char* payload, int payload_size){
 
 
 /**
- * @brief this function print the payload in ascii format
+ * @brief this function prints the payload in ascii format
  * @param payload
  * @param payload_size
  */
@@ -62,7 +62,7 @@ void printAscii(const u_char* payload, int payload_size) {
 
 
 /**
- * @brief this function print one or more ip address(es)
+ * @brief this function prints one or more ip address(es)
  * @param payload
  * @param payload_size
  */
@@ -81,7 +81,7 @@ void printIPAddress(const u_char* payload, int payload_size) {
 
 
 /**
- * @brief this function print the name of the dhcp option
+ * @brief this function prints the name of the dhcp option
  * @param option
  * @return end: 0 if the option read was the end, else 1
  */
@@ -146,7 +146,7 @@ int dhcpOptionName(unsigned char option) {
 
 
 /**
- * @brief this function print the content of the dhcp option. Can be ip address, ascii text or other
+ * @brief this function prints the content of the dhcp option. Can be an ip address, ascii text or other
  * @param option
  * @param payload
  * @param payload_size
@@ -211,7 +211,7 @@ void dhcpOptionValue(unsigned char option, const u_char* payload, int payload_si
 
 
 /**
- * @brief this function test if the content of the http payload is an header
+ * @brief this function tests if the content of the http payload is an header
  * @param payload
  * @return 1 if the content start by 'GET', 'POST' or 'HTTP', else 0
  */
@@ -230,7 +230,7 @@ int has_header(const u_char* payload) {
 
 
 /**
- * @brief this function print the http header
+ * @brief this function prints the http header
  * @param payload
  * @param verbosity
  * @return readSize: the size of the header read
@@ -266,7 +266,7 @@ int printHeader(const u_char* payload, int verbosity) {
 
 
 /**
- * @brief this function test if the telnet payload is a command (start by 0xff)
+ * @brief this function tests if the telnet payload is a command (start by 0xff)
  * @param payload
  * @return 1 if it is a command (start by 0xff), else 0
  */
@@ -278,7 +278,7 @@ int is_command(const u_char* payload){
 
 
 /**
- * @brief this function print the name of the telnet option
+ * @brief this function prints the name of the telnet option
  * @param option
  */
 void telnetOptions(int option){
@@ -319,7 +319,7 @@ void telnetOptions(int option){
 
 
 /**
- * @brief this function print the name of the telnet command, and option of the command
+ * @brief this function prints the name of the telnet command, and option of the command
  * @param payload
  * @param payload_size
  */
@@ -396,6 +396,12 @@ void telnetCommand(const u_char *payload, int payload_size) {
 }
 
 
+/**
+ * @brief this function prints type of dns
+ * @param type
+ * @param cnameFound
+ * @return 1 is the type is the cname type, else 0
+ */
 int printDnsType(int type, int cnameFound){
     switch (type) {
         case 1:
@@ -434,7 +440,10 @@ int printDnsType(int type, int cnameFound){
 }
 
 
-
+/**
+ * @brief this function prints the class of dns
+ * @param class
+ */
 void printDnsClass(int class) {
     switch (class) {
         case 1:
@@ -458,6 +467,11 @@ void printDnsClass(int class) {
     }
 }
 
+
+/**
+ * @brief this function prints the dns operation code
+ * @param opcode
+ */
 void printDnsOpcode(int opcode) {
     switch (opcode){
         case 0:

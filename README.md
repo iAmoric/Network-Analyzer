@@ -41,4 +41,4 @@
 * [x] telnet : verbosity medium & low
 * [x] telnet : check indentation data
 * [x] ftp request : verbosity low
-* [ ] add comments
+* [x] add comments

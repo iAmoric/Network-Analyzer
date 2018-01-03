@@ -284,8 +284,11 @@ void handle_ftp(const u_char* payload, int payload_size, int is_request, int ver
  */
 void handle_dns(const u_char* payload, int verbosity) {
     struct  dns_header* dns_hdr = (struct dns_header*) payload;
+
+    //char arrays for the url in queries/responses
     char url[MAX_URL_SIZE];
     char cnameUrl[MAX_URL_SIZE];
+
     int questions = ntohs((uint16_t) dns_hdr->qdcount);
     int answers = ntohs((uint16_t) dns_hdr->ancount);
     int authority = ntohs((uint16_t) dns_hdr->nscount);
@@ -302,8 +305,8 @@ void handle_dns(const u_char* payload, int verbosity) {
             else
                 fprintf(stdout, "\t\t\t\tQuery: ");
 
+            //opcode
             printDnsOpcode(dns_hdr->opcode);
-
             fprintf(stdout, "\n\t\t\t\t");
 
             //authoritative answer
@@ -344,6 +347,7 @@ void handle_dns(const u_char* payload, int verbosity) {
                 fprintf(stdout, "\t\t\t\tQueries:\n");
             for (int i = 0; i < questions; i++) {
                 fprintf(stdout, "\t\t\t\t\t");
+
                 //print query name
                 payload += 1;
                 int j = 0;
@@ -590,7 +594,7 @@ void handle_dns(const u_char* payload, int verbosity) {
                 fprintf(stdout, " %s", url);
                 payload += 2;
 
-                if (type == 1) {
+                if (type == 1) {    //if it is an ip address
                     payload += 2;           //class
                     payload += 4;           //ttl
                     payload += 2;           //length
@@ -611,12 +615,8 @@ void handle_dns(const u_char* payload, int verbosity) {
                             fprintf(stdout, ".");
                         j++;
                     }
-
                 }
-
-
             }
-
             break;
 
         default:

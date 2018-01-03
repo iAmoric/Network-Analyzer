@@ -199,9 +199,5 @@ int main(int argc, char **argv) {
 
     pcap_close(interface);
 
-    fprintf(stdout, "------------------------\n");
-    fprintf(stdout, "---- end of capture ----\n");
-    fprintf(stdout, "------------------------\n");
-
     return 0;
 }
