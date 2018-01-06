@@ -87,12 +87,18 @@ void telnetCommand(const u_char* payload, int payload_size);
 void telnetOptions(int option);
 
 /**
+ * @brief this function prints the name in dns
+ * @param base
+ * @param payload
+ * @return readSize : the size of the read value
+ */
+int printDnsName(const u_char* base, const u_char* payload);
+
+/**
  * @brief this function prints type of dns
  * @param type
- * @param cnameFound
- * @return 1 is the type is the cname type, else 0
  */
-int printDnsType(int type, int cnameFound);
+void printDnsType(int type);
 
 /**
  * @brief this function prints the class of dns
@@ -105,3 +111,5 @@ void printDnsClass(int class);
  * @param opcode
  */
 void printDnsOpcode(int opcode);
+
+int printDnsData(const u_char* dns_hdr, const u_char* payload);

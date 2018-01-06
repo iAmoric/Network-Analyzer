@@ -396,13 +396,42 @@ void telnetCommand(const u_char *payload, int payload_size) {
 }
 
 
+
+/**
+ * @brief this function prints the name in dns
+ * @param base
+ * @param payload
+ * @return readSize : the size of the read value
+ */
+int printDnsName(const u_char* base, const u_char* payload) {
+    int readSize = 0;
+    int c = *payload++;
+    while(c != 0x00) {
+        if(c >= 0xC0 && c <= 0xCF) { //if we need to jump to another place in the payload
+            int ptr = *payload++;
+            int shift = c - 192;
+            ptr += (256*shift); //modulo
+            printDnsName(base, base + ptr);
+            readSize += 1;
+            break;
+        }
+        else {
+            readSize += (c + 1);
+            fprintf(stdout, "%.*s", c, payload); //print c char of payload
+            fprintf(stdout, ".");
+            payload += c;
+        }
+        c = *(payload++);
+    }
+    readSize++;
+    return readSize;
+}
+
 /**
  * @brief this function prints type of dns
  * @param type
- * @param cnameFound
- * @return 1 is the type is the cname type, else 0
  */
-int printDnsType(int type, int cnameFound){
+void printDnsType(int type){
     switch (type) {
         case 1:
             fprintf(stdout, "A");
@@ -412,7 +441,6 @@ int printDnsType(int type, int cnameFound){
             break;
         case 5:
             fprintf(stdout, "CNAME");
-            cnameFound = 1;
             break;
         case 12:
             fprintf(stdout, "PTR");
@@ -436,7 +464,6 @@ int printDnsType(int type, int cnameFound){
             fprintf(stdout, "Unknown (%d - 0x%x)", type, type);
             break;
     }
-    return cnameFound;
 }
 
 
@@ -493,4 +520,55 @@ void printDnsOpcode(int opcode) {
             fprintf(stdout, "unknow opcode (%d)", opcode);
             break;
     }
+}
+
+
+int printDnsData(const u_char* dns_hdr, const u_char* payload){
+    int readSize = 0;
+    fprintf(stdout, "\n\t\t\t\t\t");
+
+    //name
+    readSize = printDnsName(dns_hdr, payload);
+    payload += readSize;
+
+    //type
+    uint16_t type = ntohs(*(uint16_t*)payload);
+    fprintf(stdout, " | Type: ");
+    printDnsType(type);
+    payload += 2;
+    readSize += 2;
+
+    //class
+    fprintf(stdout, " | Class: ");
+    uint16_t class = ntohs(*(uint16_t*)payload);
+    printDnsClass(class);
+    payload += 2;
+    readSize += 2;
+
+    //time to live
+    uint32_t ttl = *(uint32_t*)payload;
+    fprintf(stdout, " | TTL: %u", ntohl(ttl));
+    payload += 4;
+    readSize += 4;
+
+    //data length
+    uint16_t len = ntohs(*(uint16_t*)payload);
+    fprintf(stdout, " | length: %d", len);
+    payload += 2;
+    readSize += 2;
+
+    if (type == 1 && class == 1){ //if it is ip address, print it
+        fprintf(stdout, " | Addr: ");
+        fprintf(stdout, "%d.%d.%d.%d", payload[0], payload[1], payload[2], payload[3]);
+    }
+    else if (type == 5) {  //print the content
+        fprintf(stdout, " | CNAME: ");
+        printDnsName(dns_hdr, payload);
+    }
+    else {
+        fprintf(stdout, " | Data: ");
+        printDnsName(dns_hdr, payload);
+    }
+    readSize += len;
+    return readSize;
 }

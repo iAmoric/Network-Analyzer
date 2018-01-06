@@ -287,12 +287,13 @@ void handle_dns(const u_char* payload, int verbosity) {
 
     //char arrays for the url in queries/responses
     char url[MAX_URL_SIZE];
-    char cnameUrl[MAX_URL_SIZE];
 
     int questions = ntohs((uint16_t) dns_hdr->qdcount);
     int answers = ntohs((uint16_t) dns_hdr->ancount);
     int authority = ntohs((uint16_t) dns_hdr->nscount);
     int additional = ntohs((uint16_t) dns_hdr->arcount);
+
+    int readSize;
 
     switch (verbosity) {
         case HIGH:
@@ -344,28 +345,18 @@ void handle_dns(const u_char* payload, int verbosity) {
 
             //questions
             if (questions > 0)
-                fprintf(stdout, "\t\t\t\tQueries:\n");
+                fprintf(stdout, "\t\t\t\tQueries:");
             for (int i = 0; i < questions; i++) {
-                fprintf(stdout, "\t\t\t\t\t");
+                fprintf(stdout, "\n\t\t\t\t\t");
 
                 //print query name
-                payload += 1;
-                int j = 0;
-                while (payload[j] != 0x00) {
-                    if (isprint(payload[j]))
-                        url[j] = payload[j];    //save the url for the response
-                    else
-                        url[j] = '.';
-                    j++;
-                }
-                url[j] = '\0';  //string end
-                payload += j + 1;
-                fprintf(stdout, "%s", url);
+                readSize = printDnsName((const unsigned char *)dns_hdr, payload);
+                payload += readSize;
 
                 //type
                 uint16_t type = ntohs(*(uint16_t*)payload);
-                fprintf(stdout, " | type: ");
-                printDnsType(type, 0);
+                fprintf(stdout, " | Type: ");
+                printDnsType(type);
                 payload += 2;
 
                 //class
@@ -373,156 +364,31 @@ void handle_dns(const u_char* payload, int verbosity) {
                 fprintf(stdout, " | Class: ");
                 printDnsClass(class);
                 payload += 2;
-
-                fprintf(stdout, "\n");
-            }   //end of questions
-
+            }
 
             //answers
             if (answers > 0)
-                fprintf(stdout, "\t\t\t\tAnswers:\n");
-            int cnameFound = 0;
+                fprintf(stdout, "\n\t\t\t\tAnswers:");
             for (int i = 0; i < answers; i++) {
-                fprintf(stdout, "\t\t\t\t\t");
-
-                //name
-                if (cnameFound)
-                    fprintf(stdout, "%s", cnameUrl);
-                else
-                    fprintf(stdout, "%s", url);
-                payload += 2;
-
-                //type
-                uint16_t type = ntohs(*(uint16_t*)payload);
-                fprintf(stdout, " | type: ");
-                cnameFound = printDnsType(type, cnameFound);
-                payload += 2;
-
-                //class
-                fprintf(stdout, " | Class: ");
-                uint16_t class = ntohs(*(uint16_t*)payload);
-                printDnsClass(class);
-                payload += 2;
-
-                //time to live
-                uint32_t ttl = *(uint32_t*)payload;
-                fprintf(stdout, " | TTL: %u", ntohl(ttl));
-                payload += 4;
-
-                //data length
-                uint16_t len = ntohs(*(uint16_t*)payload);
-                fprintf(stdout, " | length: %d", len);
-                payload += 2;
-
-                if (type == 5)
-                    fprintf(stdout, " | CNAME: ");
-                else
-                    fprintf(stdout, " | Addr: ");
-
-                if (type != 5 && class == 1){ //if it is ip address, print it
-                    fprintf(stdout, "%d.%d.%d.%d", payload[0], payload[1], payload[2], payload[3]);
-                }
-                else {  //print the content
-                    int j = 0;
-                    while(j < len) {
-                        if (isprint(payload[j])) {
-                            if (type == 5)  //save the url if needed
-                                cnameUrl[j] = payload[j];
-                            fprintf(stdout, "%c", payload[j]);
-                        }
-                        else {
-                            if (type == 5)
-                                cnameUrl[j] = '.';
-                            fprintf(stdout, ".");
-                        }
-                        j++;
-                    }
-
-                    cnameUrl[j] = '\0'; //string end
-                }
-
-                //shift
-                payload += len;
-
-                fprintf(stdout, "\n");
-            }   //end of answers
-
+                readSize = printDnsData((const u_char *) dns_hdr, payload);
+                payload += readSize;
+            }
 
             //authority
             if (authority > 0)
-                fprintf(stdout, "\t\t\t\tAuthoritative nameservers:\n");
+                fprintf(stdout, "\n\t\t\t\tAuthoritative nameservers:");
             for (int i = 0; i < authority; i++){
-                fprintf(stdout, "\t\t\t\t\txxx: ");
-                payload += 2;
-
-                //type
-                uint16_t type = ntohs(*(uint16_t*)payload);
-                fprintf(stdout, "type: ");
-                printDnsType(type, 0);
-                payload += 2;
-                //class
-
-                fprintf(stdout, " | Class: ");
-                uint16_t class = ntohs(*(uint16_t*)payload);
-                printDnsClass(class);
-                payload += 2;
-
-                //time to live
-                uint32_t ttl = *(uint32_t*)payload;
-                fprintf(stdout, " | TTL: %u", ntohl(ttl));
-                payload += 4;
-
-                //data length
-                uint16_t len = ntohs(*(uint16_t*)payload);
-                fprintf(stdout, " | length: %d", len);
-                payload += 2;
-
-                if (type == 1 && class == 1)    //print ip address if needed
-                    fprintf(stdout, " | Address: %d.%d.%d.%d\n", payload[0], payload[1], payload[2], payload[3]);
-                else
-                    fprintf(stdout, " | xxx\n");
-
-                //shift
-                payload += len;
-            }   //end of authoritative nameservers
+                readSize = printDnsData((const u_char *) dns_hdr, payload);
+                payload += readSize;
+            }
 
             //additional
             if (additional > 0)
-                fprintf(stdout, "\t\t\t\tAdditional records:\n");
+                fprintf(stdout, "\n\t\t\t\tAdditional records:");
             for (int i = 0; i < additional; i++){
-                fprintf(stdout, "\t\t\t\t\txxx: ");
-                payload += 2;
-
-                //type
-                uint16_t type = ntohs(*(uint16_t*)payload);
-                fprintf(stdout, "type: ");
-                printDnsType(type, 0);
-                payload += 2;
-
-                //class
-                fprintf(stdout, " | Class: ");
-                uint16_t class = ntohs(*(uint16_t*)payload);
-                printDnsClass(class);
-                payload += 2;
-
-                //time to live
-                uint32_t ttl = *(uint32_t*)payload;
-                fprintf(stdout, " | TTL: %u", ntohl(ttl));
-                payload += 4;
-
-                //data length
-                uint16_t len = ntohs(*(uint16_t*)payload);
-                fprintf(stdout, " | length: %d", len);
-                payload += 2;
-
-                if (type == 1 && class == 1)    //print ip address if needed
-                    fprintf(stdout, " | Address: %d.%d.%d.%d\n", payload[0], payload[1], payload[2], payload[3]);
-                else
-                    fprintf(stdout, " | xxx\n");
-
-                //shift
-                payload += len;
-            }   //end of additional
+                readSize = printDnsData((const u_char *) dns_hdr, payload);
+                payload += readSize;
+            }
             break;
 
         case MEDIUM:
@@ -550,72 +416,39 @@ void handle_dns(const u_char* payload, int verbosity) {
             payload += sizeof(struct dns_header);
 
             if (questions > 0 && answers == 0){ //if query, print 1st question
-                payload += 1;
-                int j = 0;
-                while (payload[j] != 0x00) {
-                    if (isprint(payload[j]))
-                        url[j] = payload[j];    //save the url for the response
-                    else
-                        url[j] = '.';
-                    j++;
-                }
-                url[j] = '\0';  //string end
-                payload += j + 1;
+                //name
+                readSize = printDnsName((const unsigned char *)dns_hdr, payload);
+                payload += readSize;
 
                 //type
                 uint16_t type = ntohs(*(uint16_t*)payload);
-                printDnsType(type, 0);
-                fprintf(stdout, " %s", url);
+                fprintf(stdout, " ");
+                printDnsType(type);
             }
 
             if (answers > 0) {  //if response, print 1st answers
-                //shift the questions and save the url
+                //shift the questions
                 for (int i = 0; i < questions; i++) {
-                    payload += 1;
-                    int j = 0;
-                    while (payload[j] != 0x00) {
-                        if (isprint(payload[j]))
-                            url[j] = payload[j];    //save the url for the response
-                        else
-                            url[j] = '.';
-                        j++;
+                    readSize = *payload++;
+                    while (readSize != 0x00) {
+                        payload += readSize;
+                        readSize = *payload++;
                     }
-                    url[j] = '\0';  //string end
-                    payload += j + 1;   //name
                     payload += 2;       //type
                     payload += 2;       //class
                 }
 
-                payload += 2;
+                //first name
+                readSize = printDnsName((const unsigned char *)dns_hdr, payload);
+                payload += readSize;
 
                 //type
                 uint16_t type = ntohs(*(uint16_t*)payload);
-                printDnsType(type, 0);
-                fprintf(stdout, " %s", url);
-                payload += 2;
+                fprintf(stdout, " ");
+                printDnsType(type);
 
-                if (type == 1) {    //if it is an ip address
-                    payload += 2;           //class
-                    payload += 4;           //ttl
-                    payload += 2;           //length
-                    fprintf(stdout, " %d.%d.%d.%d", payload[0], payload[1], payload[2], payload[3]);
-                }
-                else if (type == 5) {
-                    payload += 2;           //class
-                    payload += 4;           //ttl
-                    //length
-                    uint16_t len = ntohs(*(uint16_t*)payload);
-                    payload += 2;
-                    int j = 0;
-                    fprintf(stdout, " ");
-                    while(j < len) {
-                        if (isprint(payload[j]))
-                            fprintf(stdout, "%c", payload[j]);
-                        else
-                            fprintf(stdout, ".");
-                        j++;
-                    }
-                }
+                if (answers > 1)
+                    fprintf(stdout, " [...]");
             }
             break;
 
