@@ -109,7 +109,7 @@ int main(int argc, char **argv) {
     int option;
     int interface_selected = 0;
     int filter_selected = 0;
-    char* filter = NULL;
+    char filter[256];
     struct bpf_program fp;
     bpf_u_int32 mask = 0;
 
@@ -145,7 +145,7 @@ int main(int argc, char **argv) {
             //filter
             case 'f':
                 filter_selected = 1;
-                filter = optarg;
+                snprintf(filter, 256, optarg);
             break;
 
             //verbosity
@@ -177,7 +177,7 @@ int main(int argc, char **argv) {
             fprintf(stderr, "Error pcap_compile with filter %s\n", filter);
             return 0;
         }
-
+        fprintf(stdout, "setfilter\n");
         if(pcap_setfilter(interface, &fp) != 0) {
             fprintf(stderr, "Error pcap_setfilter with filter %s\n", filter);
             return 0;
