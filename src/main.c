@@ -16,7 +16,7 @@
 #include <pcap.h>
 #include <getopt.h>
 
-#include "datalinkLayer.h"w
+#include "datalinkLayer.h"
 
 #define MAX_STRING_SIZE 256
 
@@ -111,7 +111,8 @@ int main(int argc, char **argv) {
     int option;
     int interface_selected = 0;
     int filter_selected = 0;
-    char filter[MAX_STRING_SIZE];
+    char* filter = NULL;
+    //char filter[MAX_STRING_SIZE];
     struct bpf_program fp;
     bpf_u_int32 mask = 0;
 
@@ -147,7 +148,7 @@ int main(int argc, char **argv) {
             //filter
             case 'f':
                 filter_selected = 1;
-                snprintf(filter, 256, optarg);
+                filter = optarg;
             break;
 
             //verbosity
@@ -179,7 +180,6 @@ int main(int argc, char **argv) {
             fprintf(stderr, "Error pcap_compile with filter %s\n", filter);
             return 0;
         }
-        fprintf(stdout, "setfilter\n");
         if(pcap_setfilter(interface, &fp) != 0) {
             fprintf(stderr, "Error pcap_setfilter with filter %s\n", filter);
             return 0;
@@ -192,8 +192,6 @@ int main(int argc, char **argv) {
 
     if (ret != 0)
         fprintf(stdout, "Error pcap_loop\n");
-
-    fprintf(stdout, "\n");
 
     //exit proprely
     if (filter_selected != 0)

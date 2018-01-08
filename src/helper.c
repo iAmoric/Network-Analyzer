@@ -56,8 +56,11 @@ void printHexaAscii(const u_char* payload, int payload_size){
  * @param payload_size
  */
 void printAscii(const u_char* payload, int payload_size) {
-    for (int i = 0; i < payload_size; i++)
-        fprintf(stdout, "%c", *payload++);
+    for (int i = 0; i < payload_size; i++){
+        if (payload[0] != '\n')
+            fprintf(stdout, "%c", *payload++);
+    }
+
 }
 
 

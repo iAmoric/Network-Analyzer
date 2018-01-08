@@ -42,3 +42,13 @@
 * [x] telnet : check indentation data
 * [x] ftp request : verbosity low
 * [x] add comments
+* [ ] check free -f
+
+
+## Author
+
+* [**Lucas Pierrat**](https://github.com/iAmoric) - [contact](mailto:lucas.pierrat@etu.unistra.fr) 
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE.md](https://github.com/iAmoric/Network-Analyzer/blob/master/LICENSE) file for details
