@@ -230,12 +230,15 @@ void handle_telnet(const u_char* payload, int payload_size, int verbosity){
  * @param is_request: 1 if it is a request (port 21), 0 if it is data (port 20)
  * @param verbosity
  */
-void handle_ftp(const u_char* payload, int payload_size, int is_request, int verbosity){
+void handle_ftp(const u_char* payload, int payload_size, int is_request, int srcPort, int verbosity){
     switch (verbosity) {
         case HIGH:
                 fprintf(stdout, "\t\t\tFTP");
                 if (is_request) {
-                    fprintf(stdout, " (request)");
+                    if (srcPort == FTP_REQUEST)
+                        fprintf(stdout, " (Response)");
+                    else
+                        fprintf(stdout, " (Request)");
 
                     if (payload_size > 0) { //only if there is data
                         fprintf(stdout, ": ");
@@ -255,14 +258,20 @@ void handle_ftp(const u_char* payload, int payload_size, int is_request, int ver
         case MEDIUM:
             fprintf(stdout, "FTP");
             if (is_request)
-                fprintf(stdout, " (request)");
+                if (srcPort == FTP_REQUEST)
+                    fprintf(stdout, " (Response)");
+                else
+                    fprintf(stdout, " (Request)");
             else
                 fprintf(stdout, " (data)");
             break;
 
         case LOW:
             if (is_request) {
-                fprintf(stdout, "Request");
+                if (srcPort == FTP_REQUEST)
+                    fprintf(stdout, "Response");
+                else
+                    fprintf(stdout, "Request");
                 if (payload_size > 0) { //only if there is data
                     fprintf(stdout, ": ");
                     printAscii(payload, payload_size);
@@ -284,9 +293,6 @@ void handle_ftp(const u_char* payload, int payload_size, int is_request, int ver
  */
 void handle_dns(const u_char* payload, int verbosity) {
     struct  dns_header* dns_hdr = (struct dns_header*) payload;
-
-    //char arrays for the url in queries/responses
-    char url[MAX_URL_SIZE];
 
     int questions = ntohs((uint16_t) dns_hdr->qdcount);
     int answers = ntohs((uint16_t) dns_hdr->ancount);
@@ -468,14 +474,14 @@ void handle_dns(const u_char* payload, int verbosity) {
 void handle_bootp(const u_char* packet, int verbosity) {
     struct bootp* bootp_hdr = (struct bootp*) packet;
 
-    unsigned char op = bootp_hdr->bp_op;            //
+    unsigned char op = bootp_hdr->bp_op;
     unsigned char htype = bootp_hdr->bp_htype;      //hardware address type
     unsigned char hlen = bootp_hdr->bp_hlen;        //hardware address length
 	unsigned char hops = bootp_hdr->bp_hops;
 	unsigned int xid = bootp_hdr->bp_xid;           //id of the transaction
 	unsigned short secs = bootp_hdr->bp_secs;
 	unsigned short flags = bootp_hdr->bp_flags;
-    u_int8_t *vendor = bootp_hdr->bp_vend;          //magic cookie
+    u_char* vendor = bootp_hdr->bp_vend;            //magic cookie
     const u_int8_t magic_cookie[] = VM_RFC1048;     //magic cookie
 
     switch (verbosity) {

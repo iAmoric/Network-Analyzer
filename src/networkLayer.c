@@ -186,6 +186,7 @@ void handle_arp(const u_char* packet, int verbosity) {
                     for (i = 0; i < 3; i++)
                         fprintf(stdout, "%d.", arp_hdr->tpa[i]);
                     fprintf(stdout, "%d", arp_hdr->tpa[i]);
+
                     fprintf(stdout, "? Tell ");
                     for (i = 0; i < 3; i++)
                         fprintf(stdout, "%d.", arp_hdr->spa[i]);
@@ -196,6 +197,7 @@ void handle_arp(const u_char* packet, int verbosity) {
                     for (i = 0; i < 3; i++)
                         fprintf(stdout, "%d.", arp_hdr->spa[i]);
                     fprintf(stdout, "%d", arp_hdr->spa[i]);
+
                     fprintf(stdout, " is at ");
                     for (i = 0; i < 5; i++)
                         fprintf(stdout, "%02x:", arp_hdr->sha[i]);

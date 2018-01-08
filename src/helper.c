@@ -213,7 +213,7 @@ void dhcpOptionValue(unsigned char option, const u_char* payload, int payload_si
 /**
  * @brief this function tests if the content of the http payload is an header
  * @param payload
- * @return 1 if the content start by 'GET', 'POST' or 'HTTP', else 0
+ * @return 1 if the content start by 'GET',  'POST' or 'HTTP', else 0
  */
 int has_header(const u_char* payload) {
     if (payload[0] == 'G' && payload[1] == 'E' && payload[2] == 'T')

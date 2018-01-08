@@ -68,7 +68,7 @@ void handle_tcp(const u_char* packet, int payload_size, int verbosity) {
 				fprintf(stdout, "%d - ", type);
 				switch(type) {
 					case 0:
-						fprintf(stdout, "End of options" );
+						fprintf(stdout, "End of options");
 						break;
 					case 1:
 						fprintf(stdout, "No operation");
@@ -92,11 +92,13 @@ void handle_tcp(const u_char* packet, int payload_size, int verbosity) {
 						fprintf(stdout, "Unknown ");
 						break;
 				}
-				fprintf(stdout, " | " );
 
 				// shift the size of the option
 				if(type != 0 && type != 1)
-					packet += length - 2;
+					for (int i = 0; i < length - 2; i++)
+						fprintf(stdout, " 0x%02x", *packet++);
+
+				fprintf(stdout, " | " );
 			}
 			fprintf(stdout, "\n");
 			break;
@@ -124,9 +126,9 @@ void handle_tcp(const u_char* packet, int payload_size, int verbosity) {
 			else if (ntohs((uint16_t) tcp_hdr->th_sport) == SMTP || ntohs((uint16_t) tcp_hdr->th_dport) == SMTP)
 				fprintf(stdout, "/SMTP\t");
 			else if (ntohs((uint16_t) tcp_hdr->th_sport) == FTP_DATA || ntohs((uint16_t) tcp_hdr->th_dport) == FTP_DATA)
-				fprintf(stdout, "/FTP Dat\t");
+				fprintf(stdout, "/FTP Dat \t");
 			else if (ntohs((uint16_t) tcp_hdr->th_sport) == FTP_REQUEST || ntohs((uint16_t) tcp_hdr->th_dport) == FTP_REQUEST)
-				fprintf(stdout, "/FTP Req\t");
+				fprintf(stdout, "/FTP Req \t");
 			else if (ntohs((uint16_t) tcp_hdr->th_sport) == POP3 || ntohs((uint16_t) tcp_hdr->th_dport) == POP3)
 				fprintf(stdout, "/POP3\t");
 			else if (ntohs((uint16_t) tcp_hdr->th_sport) == IMAP || ntohs((uint16_t) tcp_hdr->th_dport) == 143)
@@ -195,15 +197,15 @@ void handle_tcp(const u_char* packet, int payload_size, int verbosity) {
 		handle_smtp(packet, payload_size, 0, verbosity);
 
 	else if (ntohs((uint16_t) tcp_hdr->th_sport) == FTP_DATA || ntohs((uint16_t) tcp_hdr->th_dport) == FTP_DATA)
-		handle_ftp(packet, payload_size, 0, verbosity);
+		handle_ftp(packet, payload_size, 0, ntohs((uint16_t) tcp_hdr->th_sport), verbosity);
 
 	else if (ntohs((uint16_t) tcp_hdr->th_sport) == FTP_REQUEST || ntohs((uint16_t) tcp_hdr->th_dport) == FTP_REQUEST)
-		handle_ftp(packet, payload_size, 1, verbosity);
+		handle_ftp(packet, payload_size, 1, ntohs((uint16_t) tcp_hdr->th_sport), verbosity);
 
 	else if (ntohs((uint16_t) tcp_hdr->th_sport) == POP3 || ntohs((uint16_t) tcp_hdr->th_dport) == POP3)
 		handle_pop(packet, payload_size, verbosity);
 
-	else if (ntohs((uint16_t) tcp_hdr->th_sport) == IMAP || ntohs((uint16_t) tcp_hdr->th_dport) == 143)
+	else if (ntohs((uint16_t) tcp_hdr->th_sport) == IMAP || ntohs((uint16_t) tcp_hdr->th_dport) == IMAP)
 		handle_imap(packet, payload_size, verbosity);
 
 }

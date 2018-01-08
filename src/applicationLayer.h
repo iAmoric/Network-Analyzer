@@ -15,6 +15,7 @@
 #include "helper.h"
 #include "telnet.h"
 #include "dns.h"
+#include "port.h"
 
 /**
  * @brief this function processes the http protocol
@@ -54,9 +55,10 @@ void handle_telnet(const u_char* packet, int payload_size, int verbosity);
  * @brief this function processes the telnet protocol
  * @param payload
  * @param payload_size
+ * @param srcPort
  * @param verbosity
  */
-void handle_ftp(const u_char* payload, int payload_size, int is_request, int verbosity);
+void handle_ftp(const u_char* payload, int payload_size, int is_request, int srcPort, int verbosity);
 
 /**
  * @brief this function processes the ftp protocol
