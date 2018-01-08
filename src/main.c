@@ -18,8 +18,6 @@
 
 #include "datalinkLayer.h"
 
-#define MAX_STRING_SIZE 256
-
 //buffer for error
 char errbuf[PCAP_ERRBUF_SIZE];
 

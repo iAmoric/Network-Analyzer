@@ -6,9 +6,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-//#include <net/if_arp.h>
 #include <netinet/in.h>
-//#include <arpa/inet.h>
 #include <netinet/ether.h>
 #include <netinet/ip.h>
 #include <sys/socket.h>
