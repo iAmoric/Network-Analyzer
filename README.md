@@ -51,4 +51,4 @@
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE.md](Network-Analyzer/LICENSE.md) file for details
+This project is licensed under the MIT License - see the [LICENSE.md](https://github.com/iAmoric/Network-Analyzer/blob/master/LICENSE.md) file for details
