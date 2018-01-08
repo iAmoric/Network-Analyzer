@@ -110,7 +110,6 @@ int main(int argc, char **argv) {
     int interface_selected = 0;
     int filter_selected = 0;
     char* filter = NULL;
-    //char filter[MAX_STRING_SIZE];
     struct bpf_program fp;
     bpf_u_int32 mask = 0;
 
