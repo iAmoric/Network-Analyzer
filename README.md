@@ -1,7 +1,8 @@
 # Network Analyzer
 
-## Utilisation
+## Utilization
 
+    cd src/
     make
     ./analyzer -i interface | -o capture_file -f filter -v verbosity
 
